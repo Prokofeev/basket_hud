@@ -140,7 +140,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    height: 44%;
+    height: 32%;
     z-index: 2;
     background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.42) 42%, rgba(0, 0, 0, 0.91) 100%);
     pointer-events: none;
@@ -160,13 +160,13 @@
 
   .team-watermark {
     position: absolute;
-    left: -16%;
-    top: 12%;
-    width: 64%;
+    left: -8%;
+    top: 8%;
+    width: 54%;
     aspect-ratio: 1;
     object-fit: contain;
-    opacity: 0.2;
-    filter: grayscale(1) contrast(1.12) brightness(0.9) blur(0.35px);
+    opacity: 0.26;
+    filter: grayscale(1) contrast(1.22) brightness(0.85);
     mix-blend-mode: normal;
     z-index: 1;
   }
@@ -175,25 +175,25 @@
     position: absolute;
     left: 8%;
     top: 8%;
-    width: 84%;
-    height: 92%;
+    width: 78%;
+    height: 84%;
     border-radius: 50%;
-    background: radial-gradient(ellipse at center, rgba(255, 107, 0, 0.31), rgba(255, 107, 0, 0.10) 42%, transparent 72%);
-    filter: blur(16px);
+    background: radial-gradient(ellipse at center, rgba(255, 107, 0, 0.23), rgba(255, 107, 0, 0.08) 42%, transparent 72%);
+    filter: blur(13px);
     z-index: 1;
   }
 
   .portrait {
     position: absolute;
-    left: -4%;
-    bottom: -1%;
-    width: 108%;
-    height: 108%;
-    object-fit: contain;
-    object-position: bottom center;
+    left: -12%;
+    bottom: -6%;
+    width: 126%;
+    height: 122%;
+    object-fit: cover;
+    object-position: center 26%;
     display: none;
     filter: contrast(1.06) saturate(0.95) drop-shadow(0 20px 30px rgba(0, 0, 0, 0.76));
-    transform: scale(1.03);
+    transform: scale(1.09);
     transform-origin: bottom center;
     z-index: 2;
   }
@@ -232,26 +232,24 @@
 
   .player-copy {
     position: absolute;
-    left: 34px;
-    width: min(62%, 540px);
-    bottom: 3.8%;
+    left: 5.2%;
+    top: 14.5%;
+    width: min(38%, 410px);
     z-index: 4;
-    padding: 22px 26px 18px;
+    padding: 16px 18px 14px;
     border-left: 3px solid rgba(255, 107, 0, 0.72);
-    border-top: 1px solid rgba(255, 107, 0, 0.24);
-    border-bottom: 1px solid rgba(255, 107, 0, 0.14);
     background:
-      linear-gradient(90deg, rgba(0, 0, 0, 0.82) 0%, rgba(0, 0, 0, 0.56) 62%, rgba(0, 0, 0, 0.08) 100%),
-      radial-gradient(ellipse at 18% 50%, rgba(255, 107, 0, 0.12), transparent 70%);
+      linear-gradient(90deg, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0.42) 58%, rgba(0, 0, 0, 0.02) 100%),
+      radial-gradient(ellipse at 18% 50%, rgba(255, 107, 0, 0.09), transparent 70%);
     text-transform: uppercase;
     text-shadow: 0 6px 16px rgba(0, 0, 0, 0.78);
   }
 
   .player-full-name {
     font-family: var(--font-display);
-    font-size: clamp(56px, 5vw, 94px);
-    line-height: 0.88;
-    letter-spacing: 0.04em;
+    font-size: clamp(44px, 3.8vw, 72px);
+    line-height: 0.96;
+    letter-spacing: 0.03em;
     color: var(--cream);
     white-space: normal;
     overflow-wrap: anywhere;
@@ -259,9 +257,9 @@
 
   .player-given-name {
     margin-top: 6px;
-    font-size: clamp(22px, 1.95vw, 38px);
+    font-size: clamp(19px, 1.48vw, 30px);
     font-weight: 900;
-    letter-spacing: 0.2em;
+    letter-spacing: 0.12em;
     color: var(--orange-hot);
   }
 
@@ -272,7 +270,7 @@
     font-size: clamp(13px, 1vw, 20px);
     font-weight: 900;
     letter-spacing: 0.22em;
-    color: var(--orange-hot);
+    color: var(--cream-soft);
   }
 
   .team-name:empty { display: none; }
@@ -452,10 +450,10 @@
   .team--away { justify-content: flex-end; }
 
   .team-logo {
-    width: 68px;
-    height: 68px;
+    width: 56px;
+    height: 56px;
     object-fit: contain;
-    filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.8));
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.65));
   }
 
   .team-text {
@@ -554,7 +552,7 @@
 
   <footer class="footer">
     <div class="team">
-      <img class="team-logo" id="home-logo" src="" alt="">
+      <div class="team-logo-badge"><img class="team-logo" id="home-logo" src="" alt=""></div>
       <div class="team-text" id="home-name">--</div>
     </div>
     <div class="score">
@@ -564,7 +562,7 @@
     </div>
     <div class="team team--away">
       <div class="team-text" id="away-name">--</div>
-      <img class="team-logo" id="away-logo" src="" alt="">
+      <div class="team-logo-badge"><img class="team-logo" id="away-logo" src="" alt=""></div>
     </div>
     <div class="meta-pill" id="match-state">--</div>
     <div class="meta-pill" id="match-clock">--</div>
@@ -699,7 +697,6 @@
     }
     return { steals: stealsRaw, plusMinus: plusRaw };
   }
-  }
 
   function statusText(result) {
     const status = String(result.status || '').toLowerCase();
@@ -828,3 +825,15 @@
 </script>
 </body>
 </html>
+  .team-logo-badge {
+    width: 70px;
+    height: 70px;
+    border-radius: 18px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(255, 107, 0, 0.4);
+    background:
+      radial-gradient(ellipse at 34% 26%, rgba(255, 107, 0, 0.18), rgba(0, 0, 0, 0.84) 68%),
+      linear-gradient(180deg, rgba(247, 239, 230, 0.03), rgba(0, 0, 0, 0.24));
+    box-shadow: inset 0 0 0 1px rgba(247, 239, 230, 0.06), 0 10px 28px rgba(0, 0, 0, 0.55);
+  }
