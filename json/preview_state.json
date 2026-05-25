@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "phase": "armed",
+  "selected_layer": "player_card",
+  "armed": true,
+  "emergency_hidden": false,
+  "player": {
+    "schema_version": 2,
+    "visible": true,
+    "mode": "preview",
+    "updated_at": "2026-05-25T14:13:48.433528+00:00",
+    "source": "manager-preview",
+    "team_side": "",
+    "match_key": "https://www.flashscorekz.com/match/basketball/cleveland-cavaliers-xGk13Tb6/new-york-knicks-WCNO4nbt/?mid=KCGhatsH",
+    "name": "Брансон Дж.",
+    "number": "",
+    "position": "",
+    "team": "",
+    "photo": "",
+    "photo_source": "",
+    "photo_status": "",
+    "stats": {
+      "PPG": "30.0",
+      "RPG": "3.0",
+      "APG": "6.0",
+      "STL": "3.0",
+      "BLK": "2.0",
+      "FG": "10 / 19",
+      "3P": "10 / 15",
+      "FT": "4 / 10",
+      "MIN": "",
+      "PLUS_MINUS": "12",
+      "TOV": "4",
+      "PF": "1"
+    },
+    "_meta": {
+      "schema_version": 2,
+      "updated_at": "2026-05-25T14:13:48.433588+00:00",
+      "source": "player",
+      "generation": 0
+    }
+  },
+  "result": {
+    "status": "over",
+    "quarter": "",
+    "time": "",
+    "home": {
+      "name": "Кливленд Кавальерс",
+      "abbr": "CLE",
+      "logo": "json/logo-home.png",
+      "total": "108",
+      "q1": "27",
+      "q2": "27",
+      "q3": "28",
+      "q4": "26",
+      "ot": "",
+      "FG": "84",
+      "3P": "41",
+      "FT": "19",
+      "REB": "34",
+      "AST": "22",
+      "TOV": "17",
+      "PF": "22"
+    },
+    "away": {
+      "name": "Нью-Йорк Никс",
+      "abbr": "NYK",
+      "logo": "json/logo-away.png",
+      "total": "121",
+      "q1": "37",
+      "q2": "23",
+      "q3": "31",
+      "q4": "30",
+      "ot": "",
+      "FG": "77",
+      "3P": "28",
+      "FT": "27",
+      "REB": "37",
+      "AST": "27",
+      "TOV": "14",
+      "PF": "19"
+    },
+    "_meta": {
+      "updated_at": "2026-05-25T14:00:07.537843+00:00",
+      "source": "scraper",
+      "schema_version": 1,
+      "generation": 1
+    }
+  },
+  "message": "ARMED: Брансон Дж.",
+  "updated_at": "2026-05-25T14:13:48.433831+00:00",
+  "_meta": {
+    "schema_version": 1,
+    "updated_at": "2026-05-25T14:13:48.433892+00:00",
+    "source": "graphic-state",
+    "generation": 0
+  }
+}

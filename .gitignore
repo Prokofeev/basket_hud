@@ -1,0 +1,27 @@
+# Python caches and virtual environments
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.venv/
+
+# Build/distribution artifacts
+build/
+dist/
+release/
+*.spec.bak
+
+# Executables and installer outputs
+*.exe
+*.msi
+*.zip
+
+# Logs and temporary files
+*.log
+*.tmp
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Player Card Overlay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --amber:   #FF6B00;
+    --amber-h: #FF9130;
+    --amber-m: rgba(255, 107, 0, 0.40);
+    --t1: #F6EDE3;
+    --t2: rgba(246, 237, 227, 0.54);
+    --t3: rgba(246, 237, 227, 0.20);
+    --la: rgba(255, 107, 0, 0.22);
+    --s0: #050201;
+    --s1: #090402;
+    --s2: #0E0502;
+    --s3: #180903;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: transparent;
+    width: 1920px; height: 1080px;
+    overflow: hidden;
+    font-family: 'Inter', system-ui, sans-serif;
+    pointer-events: none;
+    -webkit-font-smoothing: antialiased;
+    color: var(--t1);
+  }
+
+  /* ── CARD — positioned at the very bottom, slides up ── */
+  .card {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 240px;
+    display: flex; flex-direction: row; align-items: flex-end;
+    padding: 0 80px 0 80px;
+
+    /* slide-in animation — transform drives the in/out */
+    transform: translateY(100%);
+    transition: transform 0.52s cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+  .card--visible { transform: translateY(0); }
+
+  /* Dark warm background bar */
+  .card-bg {
+    position: absolute;
+    bottom: 0; left: 0; right: 0; top: 0;
+    background:
+      linear-gradient(90deg,
+        rgba(30, 12, 3, 0.97)  0%,
+        rgba(18,  7, 2, 0.98) 45%,
+        rgba(12,  5, 1, 0.96) 100%);
+    border-top: 1px solid var(--la);
+  }
+
+  /* Amber accent stripe at the very top of the card */
+  .card-bg::before {
+    content: '';
+    position: absolute; top: -3px; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg,
+      transparent    0%,
+      var(--amber)  10%,
+      var(--amber-h) 50%,
+      var(--amber)  90%,
+      transparent  100%);
+    box-shadow: 0 0 18px 3px rgba(255, 107, 0, 0.20);
+  }
+
+  /* Film grain */
+  .card-bg::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.80' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23g)' opacity='0.025'/%3E%3C/svg%3E");
+    pointer-events: none;
+  }
+
+  /* ── PHOTO — floats above the card bar ── */
+  .photo-col {
+    position: relative; z-index: 2;
+    flex-shrink: 0;
+    padding-bottom: 24px;
+  }
+
+  .photo-wrap {
+    width: 188px; height: 188px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: radial-gradient(circle at 50% 38%,
+      rgba(255, 107, 0, 0.14) 0%,
+      rgba(  5,   2, 0, 0.90) 64%);
+    box-shadow:
+      0 0 0 2px rgba(255, 107,  0, 0.30),
+      0 0 0 6px rgba(255, 107,  0, 0.07),
+      inset 0 1px 0 rgba(255, 170, 50, 0.15),
+      0 16px 48px rgba(0, 0, 0, 0.80);
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+
+  .player-photo {
+    width: 100%; height: 100%;
+    object-fit: cover; object-position: top center;
+    display: none;
+    position: relative; z-index: 1;
+  }
+  .player-photo-fallback {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 68px; color: rgba(246, 237, 227, 0.30);
+    letter-spacing: 2px;
+    position: relative; z-index: 0;
+    display: block;
+  }
+
+  /* ── DIVIDER ── */
+  .divider {
+    flex-shrink: 0;
+    width: 1px; height: 160px;
+    background: linear-gradient(180deg,
+      transparent 0%, var(--la) 25%, var(--la) 75%, transparent 100%);
+    margin: 0 36px 32px 32px;
+    position: relative; z-index: 1;
+  }
+
+  /* ── META ── */
+  .meta {
+    flex: 1; min-width: 0;
+    display: flex; flex-direction: column;
+    justify-content: flex-end;
+    gap: 8px;
+    padding-bottom: 28px;
+    position: relative; z-index: 1;
+  }
+
+  .name-line {
+    display: flex; align-items: baseline; gap: 14px;
+  }
+
+  .player-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 80px; line-height: 0.88;
+    letter-spacing: 1px; color: var(--t1);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  .player-number {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 52px; line-height: 0.88;
+    color: var(--amber); flex-shrink: 0;
+  }
+
+  .player-sub {
+    font-size: 12px; font-weight: 700;
+    color: var(--t2); letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+
+  /* ── STATS ROW ── */
+  .stats-row {
+    display: flex; align-items: center; gap: 0;
+  }
+
+  .stat-item {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 2px;
+    padding: 0 22px;
+    border-right: 1px solid rgba(255, 107, 0, 0.14);
+  }
+  .stat-item:first-child { padding-left: 0; }
+  .stat-item:last-child  { border-right: none; }
+
+  .stat-val {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 48px; line-height: 1;
+    color: var(--t1);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+  .stat-lbl {
+    font-size: 9px; font-weight: 800;
+    color: rgba(255, 107, 0, 0.44);
+    letter-spacing: 3px; text-transform: uppercase;
+  }
+
+  /* ── TEAM TAG (right side) ── */
+  .team-col {
+    flex-shrink: 0;
+    display: flex; flex-direction: column;
+    align-items: flex-end; justify-content: flex-end;
+    padding-bottom: 28px; padding-left: 40px;
+    position: relative; z-index: 1;
+    gap: 6px;
+  }
+
+  .team-logo-wrap {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 38%,
+      rgba(255, 107, 0, 0.10) 0%, rgba(5, 2, 0, 0.90) 64%);
+    box-shadow:
+      0 0 0 1px rgba(255, 107, 0, 0.22),
+      0 0 0 3px rgba(255, 107, 0, 0.05);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+
+  .team-logo {
+    width: 60px; height: 60px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.80));
+    display: none;
+  }
+
+  .team-abbr-fallback {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px; color: rgba(246, 237, 227, 0.40);
+    letter-spacing: 1px;
+  }
+</style>
+</head>
+<body>
+
+<div class="card" id="card">
+  <div class="card-bg"></div>
+
+  <div class="photo-col">
+    <div class="photo-wrap" id="photo-wrap">
+      <img class="player-photo" id="player-photo" src="" alt="" referrerpolicy="no-referrer">
+      <div class="player-photo-fallback" id="photo-fallback">?</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="meta">
+    <div class="name-line">
+      <div class="player-name" id="player-name">--</div>
+      <div class="player-number" id="player-number"></div>
+    </div>
+    <div class="player-sub" id="player-sub">--</div>
+    <div class="stats-row">
+      <div class="stat-item">
+        <div class="stat-val" id="p-ppg">--</div>
+        <div class="stat-lbl">PPG</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val" id="p-rpg">--</div>
+        <div class="stat-lbl">RPG</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val" id="p-apg">--</div>
+        <div class="stat-lbl">APG</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val" id="p-stl">--</div>
+        <div class="stat-lbl">STL</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val" id="p-blk">--</div>
+        <div class="stat-lbl">BLK</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="team-col" id="team-col">
+    <div class="team-logo-wrap" id="team-logo-wrap">
+      <img class="team-logo" id="team-logo" src="" alt="" referrerpolicy="no-referrer">
+      <div class="team-abbr-fallback" id="team-abbr-fallback">--</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function toMediaUrl(pathOrUrl) {
+    if (!pathOrUrl) return null;
+    const s = String(pathOrUrl);
+    if (s.startsWith('http://') || s.startsWith('https://')) return s;
+    return new URL(s.replace(/^\//, ''), window.location.origin + '/').href;
+  }
+
+  function pv(v) { return v == null || v === '' ? '--' : String(v); }
+
+  function bustLocalMediaUrl(url) {
+    if (!url) return '';
+    try {
+      const parsed = new URL(url);
+      if (parsed.origin === window.location.origin && parsed.pathname.startsWith('/json/')) {
+        parsed.searchParams.set('_img', String(Date.now()));
+      }
+      return parsed.href;
+    } catch (e) {
+      return url;
+    }
+  }
+
+  function setPhoto(url) {
+    const img = document.getElementById('player-photo');
+    const fb  = document.getElementById('photo-fallback');
+    const src = bustLocalMediaUrl(url);
+    if (!src) { img.style.display = 'none'; img.src = ''; fb.style.display = 'block'; return; }
+    img.onerror = function() { img.style.display = 'none'; fb.style.display = 'block'; };
+    img.onload  = function() { fb.style.display = 'none'; img.style.display = 'block'; };
+    img.src = src;
+  }
+
+  function setTeamLogo(url, abbr) {
+    const img = document.getElementById('team-logo');
+    const fb  = document.getElementById('team-abbr-fallback');
+    const src = bustLocalMediaUrl(url);
+    fb.textContent = abbr || '--';
+    if (!src) { img.style.display = 'none'; fb.style.display = 'block'; return; }
+    img.onerror = function() { img.style.display = 'none'; fb.style.display = 'block'; };
+    img.onload  = function() { fb.style.display = 'none'; img.style.display = 'block'; };
+    img.src = src;
+  }
+
+  async function update() {
+    try {
+      const stamp = Date.now();
+      const res = await fetch(new URL('json/player.json?_=' + stamp, window.location.origin + '/').href, { cache: 'no-store' });
+      if (!res.ok) { hideCard(); return; }
+      const player = await res.json();
+
+      const visible = !!(player && player.visible && String(player.mode || '').toLowerCase() !== 'hidden');
+      const card = document.getElementById('card');
+
+      if (!visible) { card.classList.remove('card--visible'); return; }
+
+      const stats = (player && player.stats) || {};
+      document.getElementById('player-name').textContent   = pv(player.name);
+      document.getElementById('player-number').textContent = player.number ? ('#' + player.number) : '';
+
+      const team = pv(player.team);
+      const pos  = player.position ? String(player.position) : '';
+      document.getElementById('player-sub').textContent = pos ? (team + '  ·  ' + pos) : team;
+
+      document.getElementById('p-ppg').textContent = pv(stats.PPG);
+      document.getElementById('p-rpg').textContent = pv(stats.RPG);
+      document.getElementById('p-apg').textContent = pv(stats.APG);
+      document.getElementById('p-stl').textContent = pv(stats.STL);
+      document.getElementById('p-blk').textContent = pv(stats.BLK);
+
+      setPhoto(toMediaUrl(player.photo));
+      setTeamLogo(toMediaUrl(player.team_logo), player.team_abbr || player.team);
+
+      card.classList.add('card--visible');
+
+    } catch(e) { console.warn(e); }
+  }
+
+  function hideCard() {
+    const card = document.getElementById('card');
+    if (card) card.classList.remove('card--visible');
+  }
+
+  update();
+  setInterval(update, 5000);
+</script>
+</body>
+</html>

@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Player Full Card Overlay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #040201;
+    --bg-warm: #120703;
+    --cocoa: #221006;
+    --cream: #f7efe6;
+    --cream-soft: rgba(247, 239, 230, 0.74);
+    --cream-dim: rgba(247, 239, 230, 0.46);
+    --orange: #ff6b00;
+    --orange-hot: #ff8a1f;
+    --line: rgba(255, 107, 0, 0.30);
+    --line-soft: rgba(255, 107, 0, 0.15);
+    --white-line: rgba(247, 239, 230, 0.08);
+    --font-display: 'Bebas Neue', 'Arial Narrow', Arial, sans-serif;
+    --font-ui: 'Inter', system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html,
+  body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: transparent;
+  }
+
+  body {
+    font-family: var(--font-ui);
+    color: var(--cream);
+    pointer-events: none;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .stage {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    min-width: 1280px;
+    min-height: 720px;
+    display: grid;
+    grid-template-rows: 12.8% 1fr 12.4%;
+    opacity: 0;
+    transform: translateY(28px) scale(0.992);
+    transition: opacity 0.45s ease, transform 0.55s cubic-bezier(0.22, 0.61, 0.36, 1);
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse 38% 56% at 34% 56%, rgba(255, 107, 0, 0.24), transparent 68%),
+      radial-gradient(ellipse 32% 44% at 88% 30%, rgba(96, 38, 7, 0.34), transparent 72%),
+      linear-gradient(180deg, #080302 0%, #040201 54%, #010101 100%);
+  }
+
+  .stage--visible {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  .stage::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background:
+      linear-gradient(90deg, rgba(0, 0, 0, 0.90) 0%, transparent 28%, rgba(0, 0, 0, 0.08) 49%, transparent 72%, rgba(0, 0, 0, 0.84) 100%),
+      repeating-linear-gradient(120deg, transparent 0 130px, rgba(255, 107, 0, 0.040) 131px, transparent 133px);
+  }
+
+  .stage::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    opacity: 0.2;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.78' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.16'/%3E%3C/svg%3E");
+  }
+
+  .top,
+  .main,
+  .footer {
+    position: relative;
+    z-index: 2;
+  }
+
+  .top {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 12px;
+    padding: 0 58px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .title {
+    font-size: clamp(17px, 1.34vw, 26px);
+    font-weight: 900;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .league {
+    font-size: clamp(11px, 0.78vw, 16px);
+    font-weight: 900;
+    letter-spacing: 0.38em;
+    text-transform: uppercase;
+    color: var(--orange-hot);
+  }
+
+  .main {
+    display: grid;
+    grid-template-columns: 48.2% 51.8%;
+    min-height: 0;
+  }
+
+  .identity {
+    position: relative;
+    min-width: 0;
+    overflow: hidden;
+    border-right: 1px solid var(--line);
+    background:
+      radial-gradient(ellipse 60% 68% at 54% 57%, rgba(255, 107, 0, 0.18), transparent 68%),
+      linear-gradient(90deg, rgba(0, 0, 0, 0.78), transparent 58%),
+      linear-gradient(180deg, rgba(30, 12, 3, 0.20), transparent 72%);
+  }
+
+  .identity::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 44%;
+    z-index: 2;
+    background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.42) 42%, rgba(0, 0, 0, 0.91) 100%);
+    pointer-events: none;
+  }
+
+  .identity::after {
+    content: '';
+    position: absolute;
+    inset: 10% -12% 0 20%;
+    z-index: 1;
+    opacity: 0.32;
+    background:
+      linear-gradient(132deg, transparent 0 42%, rgba(255, 107, 0, 0.18) 42.2%, transparent 42.6%),
+      linear-gradient(132deg, transparent 0 61%, rgba(255, 107, 0, 0.10) 61.2%, transparent 61.55%);
+    pointer-events: none;
+  }
+
+  .team-watermark {
+    position: absolute;
+    left: -16%;
+    top: 12%;
+    width: 64%;
+    aspect-ratio: 1;
+    object-fit: contain;
+    opacity: 0.2;
+    filter: grayscale(1) contrast(1.12) brightness(0.9) blur(0.35px);
+    mix-blend-mode: normal;
+    z-index: 1;
+  }
+
+  .portrait-glow {
+    position: absolute;
+    left: 8%;
+    top: 8%;
+    width: 84%;
+    height: 92%;
+    border-radius: 50%;
+    background: radial-gradient(ellipse at center, rgba(255, 107, 0, 0.31), rgba(255, 107, 0, 0.10) 42%, transparent 72%);
+    filter: blur(16px);
+    z-index: 1;
+  }
+
+  .portrait {
+    position: absolute;
+    left: -4%;
+    bottom: -1%;
+    width: 108%;
+    height: 108%;
+    object-fit: contain;
+    object-position: bottom center;
+    display: none;
+    filter: contrast(1.06) saturate(0.95) drop-shadow(0 20px 30px rgba(0, 0, 0, 0.76));
+    transform: scale(1.03);
+    transform-origin: bottom center;
+    z-index: 2;
+  }
+
+  .portrait.portrait--fallback-fit {
+    left: -2%;
+    bottom: 0;
+    width: 104%;
+    height: 100%;
+    transform: scale(0.96);
+    object-fit: contain;
+    object-position: center bottom;
+    filter: contrast(1.02) saturate(0.95) drop-shadow(0 12px 20px rgba(0, 0, 0, 0.64));
+  }
+
+  .portrait-fallback {
+    position: absolute;
+    left: 33%;
+    top: 20%;
+    width: 42%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-family: var(--font-display);
+    font-size: clamp(92px, 8vw, 154px);
+    line-height: 1;
+    color: rgba(247, 239, 230, 0.34);
+    background:
+      radial-gradient(circle at 50% 34%, rgba(255, 107, 0, 0.18), rgba(8, 3, 1, 0.96) 66%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent);
+    border: 1px solid rgba(255, 107, 0, 0.28);
+    box-shadow: 0 0 0 8px rgba(255, 107, 0, 0.05), 0 32px 70px rgba(0, 0, 0, 0.78);
+    z-index: 2;
+  }
+
+  .player-copy {
+    position: absolute;
+    left: 34px;
+    width: min(62%, 540px);
+    bottom: 3.8%;
+    z-index: 4;
+    padding: 22px 26px 18px;
+    border-left: 3px solid rgba(255, 107, 0, 0.72);
+    border-top: 1px solid rgba(255, 107, 0, 0.24);
+    border-bottom: 1px solid rgba(255, 107, 0, 0.14);
+    background:
+      linear-gradient(90deg, rgba(0, 0, 0, 0.82) 0%, rgba(0, 0, 0, 0.56) 62%, rgba(0, 0, 0, 0.08) 100%),
+      radial-gradient(ellipse at 18% 50%, rgba(255, 107, 0, 0.12), transparent 70%);
+    text-transform: uppercase;
+    text-shadow: 0 6px 16px rgba(0, 0, 0, 0.78);
+  }
+
+  .player-full-name {
+    font-family: var(--font-display);
+    font-size: clamp(56px, 5vw, 94px);
+    line-height: 0.88;
+    letter-spacing: 0.04em;
+    color: var(--cream);
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .player-given-name {
+    margin-top: 6px;
+    font-size: clamp(22px, 1.95vw, 38px);
+    font-weight: 900;
+    letter-spacing: 0.2em;
+    color: var(--orange-hot);
+  }
+
+  .player-given-name:empty { display: none; }
+
+  .team-name {
+    margin-top: 10px;
+    font-size: clamp(13px, 1vw, 20px);
+    font-weight: 900;
+    letter-spacing: 0.22em;
+    color: var(--orange-hot);
+  }
+
+  .team-name:empty { display: none; }
+
+  .stats-panel {
+    min-width: 0;
+    display: grid;
+    grid-template-rows: 13.5% 47% 39.5%;
+    background:
+      radial-gradient(ellipse 62% 70% at 82% 46%, rgba(255, 107, 0, 0.10), transparent 70%),
+      linear-gradient(90deg, rgba(255, 107, 0, 0.055), transparent 22%),
+      linear-gradient(180deg, rgba(255, 107, 0, 0.05), transparent 36%);
+  }
+
+  .panel-kicker,
+  .shoot-title {
+    display: flex;
+    align-items: center;
+    padding: 0 62px;
+    color: var(--orange-hot);
+    font-weight: 900;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+  }
+
+  .panel-kicker {
+    border-bottom: 1px solid var(--line-soft);
+    font-size: clamp(13px, 0.94vw, 18px);
+  }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+  }
+
+  .stat-card {
+    min-width: 0;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    border-right: 1px solid var(--white-line);
+    border-bottom: 1px solid rgba(255, 107, 0, 0.16);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.018), transparent 56%),
+      radial-gradient(ellipse 72% 80% at 50% 34%, rgba(255, 107, 0, 0.055), transparent 76%);
+  }
+
+  .stat-card:nth-child(3n) { border-right: none; }
+  .stat-card:nth-child(n + 4) { border-bottom: none; }
+
+  .stat-value {
+    font-family: var(--font-display);
+    font-size: clamp(76px, 6.25vw, 122px);
+    line-height: 0.84;
+    color: var(--cream);
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 8px 22px rgba(0, 0, 0, 0.72);
+  }
+
+  .stat-label {
+    font-size: clamp(12px, 0.92vw, 17px);
+    font-weight: 900;
+    line-height: 1.12;
+    letter-spacing: 0.25em;
+    color: var(--orange-hot);
+    text-transform: uppercase;
+    text-align: center;
+  }
+
+  .shooting {
+    display: grid;
+    grid-template-rows: 27% 1fr;
+    border-top: 1px solid var(--line);
+  }
+
+  .shoot-title {
+    border-bottom: 1px solid var(--line-soft);
+    font-size: clamp(12px, 0.9vw, 17px);
+  }
+
+  .shoot-body {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr) 1.25fr;
+    align-items: center;
+    min-height: 0;
+  }
+
+  .shoot-item {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 17px;
+    border-right: 1px solid var(--white-line);
+  }
+
+  .shoot-value {
+    font-family: var(--font-display);
+    font-size: clamp(46px, 4vw, 78px);
+    line-height: 0.9;
+    color: var(--cream);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .shoot-label {
+    color: var(--orange-hot);
+    font-size: clamp(10px, 0.80vw, 15px);
+    font-weight: 900;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+  }
+
+  .percent {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .ring {
+    --pct: 0;
+    width: clamp(136px, 10.8vw, 202px);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background:
+      radial-gradient(circle at 50% 50%, var(--bg) 0 58%, transparent 59%),
+      conic-gradient(var(--orange) calc(var(--pct) * 1%), rgba(255, 107, 0, 0.18) 0);
+    box-shadow: inset 0 0 0 1px rgba(255, 107, 0, 0.22), 0 16px 42px rgba(0, 0, 0, 0.55), 0 0 22px rgba(255, 107, 0, 0.08);
+  }
+
+  .ring-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .ring-value {
+    font-family: var(--font-display);
+    font-size: clamp(48px, 4.2vw, 82px);
+    line-height: 0.86;
+  }
+
+  .ring-label {
+    font-size: clamp(9px, 0.68vw, 13px);
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    color: var(--cream-soft);
+    text-transform: uppercase;
+  }
+
+  .footer {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 30px;
+    padding: 0 64px;
+    border-top: 1px solid var(--line);
+    background:
+      radial-gradient(ellipse 24% 80% at 0% 100%, rgba(255, 107, 0, 0.18), transparent 74%),
+      linear-gradient(90deg, rgba(28, 12, 3, 0.92), rgba(5, 2, 1, 0.98));
+  }
+
+  .team {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .team--away { justify-content: flex-end; }
+
+  .team-logo {
+    width: 68px;
+    height: 68px;
+    object-fit: contain;
+    filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.8));
+  }
+
+  .team-text {
+    min-width: 0;
+    font-size: clamp(16px, 1.1vw, 24px);
+    font-weight: 900;
+    line-height: 1.3;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(247, 239, 230, 0.92);
+    overflow-wrap: anywhere;
+  }
+
+  .score {
+    display: flex;
+    align-items: baseline;
+    gap: 20px;
+    font-family: var(--font-display);
+    font-size: clamp(62px, 5.05vw, 98px);
+    line-height: 0.8;
+    color: var(--cream);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .score-home { color: var(--orange); }
+
+  .score-sep {
+    color: rgba(247, 239, 230, 0.72);
+    font-size: 0.6em;
+  }
+
+  .meta-pill {
+    height: 58px;
+    display: flex;
+    align-items: center;
+    padding-left: 30px;
+    border-left: 1px solid var(--line);
+    font-size: clamp(13px, 0.9vw, 17px);
+    font-weight: 900;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(247, 239, 230, 0.88);
+    white-space: nowrap;
+  }
+</style>
+</head>
+<body>
+<main class="stage" id="stage">
+  <header class="top">
+    <div class="title">Персональная статистика игрока</div>
+    <div class="league" id="league">Матч</div>
+  </header>
+
+  <section class="main">
+    <div class="identity">
+      <img class="team-watermark" id="watermark" src="" alt="">
+      <div class="portrait-glow"></div>
+      <img class="portrait" id="portrait" src="" alt="" referrerpolicy="no-referrer">
+      <div class="portrait-fallback" id="portrait-fallback">?</div>
+      <div class="player-copy">
+        <div class="player-full-name" id="player-full-name">--</div>
+        <div class="player-given-name" id="player-given-name"></div>
+        <div class="team-name" id="player-team">--</div>
+      </div>
+    </div>
+
+    <div class="stats-panel">
+      <div class="panel-kicker">Статистика в матче</div>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-value" id="stat-points">--</div><div class="stat-label">Очки</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-rebounds">--</div><div class="stat-label">Подборы</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-assists">--</div><div class="stat-label">Передачи</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-steals">--</div><div class="stat-label">Перехваты</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-blocks">--</div><div class="stat-label">Блок-шоты</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-sixth">--</div><div class="stat-label" id="stat-sixth-label">Игровое время</div></div>
+      </div>
+
+      <div class="shooting">
+        <div class="shoot-title">Броски с игры</div>
+        <div class="shoot-body">
+          <div class="shoot-item"><div class="shoot-value" id="fg">--</div><div class="shoot-label">С игры</div></div>
+          <div class="shoot-item"><div class="shoot-value" id="threep">--</div><div class="shoot-label">3-очковые</div></div>
+          <div class="shoot-item"><div class="shoot-value" id="ft">--</div><div class="shoot-label">Штрафные</div></div>
+          <div class="percent">
+            <div class="ring" id="ring">
+              <div class="ring-inner">
+                <div class="ring-value" id="fg-pct">--</div>
+                <div class="ring-label">% попаданий</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="team">
+      <img class="team-logo" id="home-logo" src="" alt="">
+      <div class="team-text" id="home-name">--</div>
+    </div>
+    <div class="score">
+      <span class="score-home" id="home-score">--</span>
+      <span class="score-sep">:</span>
+      <span id="away-score">--</span>
+    </div>
+    <div class="team team--away">
+      <div class="team-text" id="away-name">--</div>
+      <img class="team-logo" id="away-logo" src="" alt="">
+    </div>
+    <div class="meta-pill" id="match-state">--</div>
+    <div class="meta-pill" id="match-clock">--</div>
+  </footer>
+</main>
+
+<script>
+  const stage = document.getElementById('stage');
+
+  function mediaUrl(pathOrUrl) {
+    if (!pathOrUrl) return '';
+    const s = String(pathOrUrl).trim();
+    if (/^https?:\/\//i.test(s)) return s;
+    return new URL(s.replace(/^\//, ''), window.location.origin + '/').href;
+  }
+
+  function jsonUrl(path) {
+    return new URL(path + '?_=' + Date.now(), window.location.origin + '/').href;
+  }
+
+  function text(id, value, fallback = '--') {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const s = value == null ? '' : String(value).trim();
+    el.textContent = s || fallback;
+  }
+
+  function value(stats, keys) {
+    for (const key of keys) {
+      if (stats && stats[key] != null && String(stats[key]).trim() !== '') {
+        return String(stats[key]).trim();
+      }
+    }
+    return '';
+  }
+
+  function splitName(name) {
+    const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return ['Игрок', '--'];
+    if (parts.length === 1) return ['', parts[0]];
+    if (parts.length === 2 && /^[A-ZА-ЯЁ]\.?$/i.test(parts[1])) return ['', parts.join(' ')];
+    return [parts[0], parts.slice(1).join(' ')];
+  }
+
+  function initials(name) {
+    const chars = String(name || '').trim().split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0]);
+    return chars.join('').toUpperCase() || '?';
+  }
+
+  function bustLocalMediaUrl(url) {
+    if (!url) return '';
+    try {
+      const parsed = new URL(url);
+      if (parsed.origin === window.location.origin && parsed.pathname.startsWith('/json/')) {
+        parsed.searchParams.set('_img', String(Date.now()));
+      }
+      return parsed.href;
+    } catch (e) {
+      return url;
+    }
+  }
+
+  function setImage(id, url, showFallback) {
+    const img = document.getElementById(id);
+    const src = bustLocalMediaUrl(url);
+    if (!img) return;
+    if (!src) {
+      img.style.display = 'none';
+      img.removeAttribute('src');
+      if (showFallback) showFallback(true);
+      return;
+    }
+    img.onerror = function() {
+      img.style.display = 'none';
+      if (showFallback) showFallback(true);
+    };
+    img.onload = function() {
+      img.style.display = 'block';
+      if (showFallback) showFallback(false);
+    };
+    img.src = src;
+  }
+
+  function fitText(el, maxPx, minPx) {
+    if (!el) return;
+    el.style.fontSize = maxPx + 'px';
+    for (let size = maxPx; size >= minPx && el.scrollWidth > el.clientWidth; size -= 2) {
+      el.style.fontSize = size + 'px';
+    }
+  }
+
+  function resolveTeam(player, result) {
+    const home = result.home || {};
+    const away = result.away || {};
+    const side = String(player.team_side || '').toLowerCase();
+    if (side === 'home') return home;
+    if (side === 'away') return away;
+    const teamName = String(player.team || '').trim().toLowerCase();
+    if (teamName && String(home.name || '').trim().toLowerCase() === teamName) return home;
+    if (teamName && String(away.name || '').trim().toLowerCase() === teamName) return away;
+    return {};
+  }
+
+  function pctFromPair(pair) {
+    const match = String(pair || '').match(/(\d+(?:[.,]\d+)?)\s*\/\s*(\d+(?:[.,]\d+)?)/);
+    if (!match) return '';
+    const made = parseFloat(match[1].replace(',', '.'));
+    const attempts = parseFloat(match[2].replace(',', '.'));
+    if (!Number.isFinite(made) || !Number.isFinite(attempts) || attempts <= 0) return '';
+    return Math.round((made / attempts) * 100);
+  }
+
+  function parseNumericValue(raw) {
+    const s = String(raw == null ? '' : raw).trim().replace(',', '.');
+    if (!s) return NaN;
+    const n = Number(s);
+    return Number.isFinite(n) ? n : NaN;
+  }
+
+  function maybeSwapStealsAndPlusMinus(stealsRaw, plusRaw) {
+    const stealsNum = parseNumericValue(stealsRaw);
+    const plusNum = parseNumericValue(plusRaw);
+    if (!Number.isFinite(stealsNum) || !Number.isFinite(plusNum)) {
+      return { steals: stealsRaw, plusMinus: plusRaw };
+    }
+
+    // Flashscore table variants may invert STL and +/- in our parsed payload.
+    // If steals look unusually high and +/- is small, swap for display.
+    const likelySwapped = stealsNum >= 4 && Math.abs(plusNum) <= 3;
+    if (likelySwapped) {
+      return { steals: plusRaw, plusMinus: stealsRaw };
+    }
+    return { steals: stealsRaw, plusMinus: plusRaw };
+  }
+  }
+
+  function statusText(result) {
+    const status = String(result.status || '').toLowerCase();
+    if (status === 'over') return 'Финальный счет';
+    if (status === 'live') return 'Матч идет';
+    return 'Матч не начат';
+  }
+
+  function clockText(result) {
+    const q = String(result.quarter || '').trim();
+    const t = String(result.time || '').trim();
+    if (q && t) return q + ' · ' + t;
+    if (q) return q;
+    if (t) return t;
+    return 'Матч';
+  }
+
+  function leagueText(result) {
+    const nba = new Set([
+      'ATL', 'BOS', 'BKN', 'CHA', 'CHI', 'CLE', 'DAL', 'DEN', 'DET', 'GSW',
+      'HOU', 'IND', 'LAC', 'LAL', 'MEM', 'MIA', 'MIL', 'MIN', 'NOP', 'NYK',
+      'OKC', 'ORL', 'PHI', 'PHX', 'POR', 'SAC', 'SAS', 'TOR', 'UTA', 'WAS'
+    ]);
+    const home = String(result.home && result.home.abbr || '').toUpperCase();
+    const away = String(result.away && result.away.abbr || '').toUpperCase();
+    if (nba.has(home) && nba.has(away)) return 'NBA';
+    return result.league || 'Матч';
+  }
+
+  async function update() {
+    try {
+      const [playerRes, resultRes] = await Promise.all([
+        fetch(jsonUrl('json/player.json')),
+        fetch(jsonUrl('json/result.json')),
+      ]);
+      if (!playerRes.ok) {
+        stage.classList.remove('stage--visible');
+        return;
+      }
+
+      const player = await playerRes.json();
+      const result = resultRes.ok ? await resultRes.json() : {};
+      const visible = !!(player && player.visible && String(player.mode || '').toLowerCase() !== 'hidden');
+      if (!visible) {
+        stage.classList.remove('stage--visible');
+        return;
+      }
+
+      const stats = player.stats || {};
+      const team = resolveTeam(player, result);
+      const name = String(player.name || '').trim();
+      const split = splitName(name);
+      const familyName = split[1] || split[0] || name;
+      const givenName = split[1] ? split[0] : '';
+      text('player-full-name', familyName || name);
+      text('player-given-name', givenName, '');
+      fitText(document.getElementById('player-full-name'), 94, 46);
+      fitText(document.getElementById('player-given-name'), 38, 18);
+      const playerTeamEl = document.getElementById('player-team');
+      const playerTeam = String(player.team || team.name || '').trim();
+      playerTeamEl.textContent = playerTeam;
+      playerTeamEl.style.display = playerTeam ? 'block' : 'none';
+      text('league', leagueText(result));
+      text('portrait-fallback', initials(name));
+
+      const stealsRaw = value(stats, ['STL']);
+      const plusRaw = value(stats, ['PLUS_MINUS', 'PM']);
+      const normalized = maybeSwapStealsAndPlusMinus(stealsRaw, plusRaw);
+
+      text('stat-points', value(stats, ['PTS', 'PPG']));
+      text('stat-rebounds', value(stats, ['REB', 'RPG']));
+      text('stat-assists', value(stats, ['AST', 'APG']));
+      text('stat-steals', normalized.steals);
+      text('stat-blocks', value(stats, ['BLK']));
+      const minValue = value(stats, ['MIN']);
+      const plusValue = normalized.plusMinus;
+      const tovValue = value(stats, ['TOV', 'TO']);
+      if (minValue) {
+        text('stat-sixth', minValue);
+        text('stat-sixth-label', 'Игровое время');
+      } else if (plusValue) {
+        text('stat-sixth', plusValue);
+        text('stat-sixth-label', 'Плюс/минус');
+      } else {
+        text('stat-sixth', tovValue);
+        text('stat-sixth-label', 'Потери');
+      }
+
+      const fg = value(stats, ['FG', '2P', 'FGM_FGA']);
+      const threep = value(stats, ['3P', 'THREEP', 'TP']);
+      const ft = value(stats, ['FT']);
+      const pct = value(stats, ['FG_PCT']) || pctFromPair(fg);
+      text('fg', fg);
+      text('threep', threep);
+      text('ft', ft);
+      text('fg-pct', pct ? pct + '%' : '--');
+      document.getElementById('ring').style.setProperty('--pct', pct || 0);
+
+      const portraitEl = document.getElementById('portrait');
+      const photoSource = String(player.photo_source || '').toLowerCase();
+      const useFallbackFit = photoSource.startsWith('auto:sportsdb') || photoSource.startsWith('auto:flashscore');
+      portraitEl.classList.toggle('portrait--fallback-fit', useFallbackFit);
+
+      setImage('portrait', mediaUrl(player.photo), function(show) {
+        document.getElementById('portrait-fallback').style.display = show ? 'grid' : 'none';
+      });
+      setImage('watermark', mediaUrl(team.logo), null);
+      setImage('home-logo', mediaUrl(result.home && result.home.logo), null);
+      setImage('away-logo', mediaUrl(result.away && result.away.logo), null);
+
+      text('home-name', result.home && result.home.name);
+      text('away-name', result.away && result.away.name);
+      text('home-score', result.home && result.home.total);
+      text('away-score', result.away && result.away.total);
+      text('match-state', statusText(result));
+      text('match-clock', clockText(result));
+
+      stage.classList.add('stage--visible');
+    } catch (err) {
+      console.warn(err);
+    }
+  }
+
+  update();
+  setInterval(update, 3000);
+</script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+{
+  "schema_version": 2,
+  "visible": true,
+  "mode": "manual_lock",
+  "updated_at": "2026-05-25T14:13:50.953483+00:00",
+  "source": "manager-take",
+  "team_side": "",
+  "match_key": "https://www.flashscorekz.com/match/basketball/cleveland-cavaliers-xGk13Tb6/new-york-knicks-WCNO4nbt/?mid=KCGhatsH",
+  "name": "Брансон Дж.",
+  "number": "",
+  "position": "",
+  "team": "",
+  "photo": "json/players/1628973.png",
+  "photo_source": "auto:nba",
+  "photo_status": "auto_found",
+  "stats": {
+    "PPG": "30.0",
+    "RPG": "3.0",
+    "APG": "6.0",
+    "STL": "3.0",
+    "BLK": "2.0",
+    "FG": "10 / 19",
+    "3P": "10 / 15",
+    "FT": "4 / 10",
+    "MIN": "",
+    "PLUS_MINUS": "12",
+    "TOV": "4",
+    "PF": "1"
+  },
+  "_meta": {
+    "schema_version": 2,
+    "updated_at": "2026-05-25T14:13:48.433588+00:00",
+    "source": "player",
+    "generation": 0
+  }
+}

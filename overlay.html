@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Basketball Stats Overlay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-0: #050201;
+    --bg-1: #0a0402;
+    --bg-2: #130701;
+    --cream: #f3eadf;
+    --cream-soft: rgba(243, 234, 223, 0.76);
+    --cream-dim: rgba(243, 234, 223, 0.38);
+    --cream-faint: rgba(243, 234, 223, 0.14);
+    --orange: #ff6b00;
+    --orange-hot: #ff8a1f;
+    --orange-soft: rgba(255, 107, 0, 0.48);
+    --orange-faint: rgba(255, 107, 0, 0.14);
+    --line: rgba(255, 107, 0, 0.22);
+    --line-soft: rgba(255, 255, 255, 0.055);
+    --font-display: 'Barlow Condensed', 'Bebas Neue', 'Arial Narrow', Arial, sans-serif;
+    --font-score: 'Bebas Neue', 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif;
+    --font-ui: 'Inter', system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html,
+  body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: var(--bg-0);
+  }
+
+  body {
+    position: relative;
+    font-family: var(--font-ui);
+    color: var(--cream);
+    -webkit-font-smoothing: antialiased;
+    pointer-events: none;
+  }
+
+  .panel {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 1920px;
+    height: 1080px;
+    display: grid;
+    grid-template-rows: 120px 350px 158px 445px 7px;
+    overflow: hidden;
+    transform: translate(-50%, -50%) scale(var(--stage-scale, 1));
+    transform-origin: center center;
+    background:
+      radial-gradient(ellipse 42% 50% at 50% 36%, rgba(255, 107, 0, 0.23) 0%, rgba(255, 107, 0, 0.07) 38%, transparent 74%),
+      radial-gradient(ellipse 34% 48% at 8% 38%, rgba(91, 43, 16, 0.42) 0%, rgba(39, 16, 5, 0.16) 46%, transparent 76%),
+      radial-gradient(ellipse 34% 48% at 92% 38%, rgba(79, 36, 12, 0.40) 0%, rgba(30, 12, 4, 0.14) 48%, transparent 76%),
+      linear-gradient(180deg, #090402 0%, #050201 48%, #020101 100%);
+  }
+
+  .panel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1920 1080'%3E%3Cg fill='none' stroke='%23ff6b00' stroke-width='2' opacity='.115'%3E%3Cpath d='M-180 870C230 600 445 292 665-104'/%3E%3Cpath d='M2230 836c-430-268-612-575-842-940'/%3E%3Cpath d='M735 90c-130 165-218 349-262 552'/%3E%3Cpath d='M1185 86c128 166 214 351 258 553'/%3E%3Ccircle cx='960' cy='536' r='218'/%3E%3C/g%3E%3C/svg%3E"),
+      linear-gradient(90deg, rgba(0, 0, 0, 0.74) 0%, transparent 25%, transparent 75%, rgba(0, 0, 0, 0.74) 100%),
+      radial-gradient(ellipse 62% 52% at 50% 43%, transparent 0%, rgba(0, 0, 0, 0.2) 52%, rgba(0, 0, 0, 0.76) 100%),
+      repeating-linear-gradient(0deg, transparent 0, transparent 42px, rgba(255, 107, 0, 0.014) 43px, transparent 44px);
+    background-size: cover, auto, auto, auto;
+    pointer-events: none;
+  }
+
+  .panel::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    opacity: 0.24;
+    pointer-events: none;
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.72' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.18'/%3E%3C/svg%3E");
+    mix-blend-mode: overlay;
+  }
+
+  .header,
+  .hero,
+  .quarters,
+  .stats,
+  .footer {
+    position: relative;
+    z-index: 2;
+  }
+
+  .header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding-top: 10px;
+  }
+
+  .status-kicker {
+    font-family: var(--font-ui);
+    font-size: 19px;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: 14px;
+    color: rgba(255, 248, 238, 0.93);
+    text-transform: uppercase;
+    text-align: center;
+    text-shadow: 0 8px 22px rgba(0, 0, 0, 0.72);
+  }
+
+  .league-title {
+    font-family: var(--font-ui);
+    font-size: 15px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: 11px;
+    color: var(--orange-hot);
+    text-transform: uppercase;
+    text-align: center;
+    text-shadow: 0 0 14px rgba(255, 107, 0, 0.34);
+  }
+
+  .hero {
+    display: grid;
+    grid-template-columns: 430px 600px 430px;
+    align-items: center;
+    padding: 0 230px;
+    overflow: hidden;
+  }
+
+  .team-side {
+    position: relative;
+    min-width: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+  }
+
+  .team-side--home { justify-content: flex-start; }
+  .team-side--away { justify-content: flex-end; }
+
+  .logo-wrap {
+    position: absolute;
+    top: 50%;
+    width: 760px;
+    height: 760px;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.72;
+  }
+
+  .team-side--home .logo-wrap { left: -360px; }
+  .team-side--away .logo-wrap { right: -360px; }
+
+  .team-logo {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: none;
+    opacity: 0.12;
+    filter: grayscale(1) sepia(0.22) saturate(0.55) contrast(1.16) blur(1.35px);
+    mix-blend-mode: luminosity;
+  }
+
+  .team-texts {
+    position: relative;
+    z-index: 2;
+    width: 430px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 12px;
+    text-shadow: 0 3px 18px rgba(0, 0, 0, 0.82);
+  }
+
+  .team-side--away .team-texts {
+    align-items: flex-end;
+    text-align: right;
+  }
+
+  .team-city {
+    max-width: 100%;
+    font-family: var(--font-display);
+    font-size: 46px;
+    font-weight: 800;
+    line-height: 0.85;
+    letter-spacing: 2px;
+    color: rgba(255, 248, 238, 0.84);
+    text-transform: uppercase;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  .team-name {
+    max-width: 100%;
+    font-family: var(--font-display);
+    font-size: 96px;
+    font-weight: 900;
+    line-height: 0.78;
+    letter-spacing: 0;
+    color: var(--cream);
+    text-transform: uppercase;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  .score-col {
+    position: relative;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .score-col::before {
+    content: '';
+    position: absolute;
+    width: 980px;
+    height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse at center, rgba(255, 107, 0, 0.24) 0%, rgba(255, 107, 0, 0.082) 45%, transparent 73%);
+    filter: blur(3px);
+  }
+
+  .score-nums {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-score);
+    font-size: 252px;
+    line-height: 0.86;
+    letter-spacing: -0.01em;
+    color: var(--cream);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+    text-shadow:
+      0 2px 0 rgba(255, 255, 255, 0.06),
+      0 22px 40px rgba(0, 0, 0, 0.78);
+  }
+
+  .score-sep {
+    display: inline-block;
+    margin: 0 20px;
+    transform: translateY(0.06em);
+    color: rgba(255, 107, 0, 0.86);
+    font-size: 0.46em;
+    line-height: 1;
+    text-shadow: 0 0 26px rgba(255, 107, 0, 0.44);
+  }
+
+  .section-line {
+    position: absolute;
+    left: 190px;
+    right: 190px;
+    bottom: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 107, 0, 0.54) 12%, rgba(255, 126, 23, 0.62) 50%, rgba(255, 107, 0, 0.54) 88%, transparent 100%);
+    box-shadow: 0 0 16px rgba(255, 107, 0, 0.24);
+  }
+
+  .quarters {
+    display: grid;
+    grid-template-rows: 30% 35% 35%;
+    align-items: stretch;
+    padding: 0 296px;
+    background:
+      linear-gradient(90deg, transparent, rgba(255, 107, 0, 0.045) 50%, transparent),
+      linear-gradient(180deg, rgba(0, 0, 0, 0.04) 0%, rgba(0, 0, 0, 0.24) 100%);
+  }
+
+  .q-grid {
+    display: grid;
+    grid-template-columns: 170px repeat(var(--q-cols, 4), 1fr);
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 107, 0, 0.115);
+  }
+
+  .q-grid:last-child { border-bottom-color: rgba(255, 107, 0, 0.24); }
+
+  .q-th {
+    font-family: var(--font-ui);
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: 5px;
+    color: rgba(255, 138, 31, 0.78);
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  .q-th.q-active { color: var(--orange-hot); text-shadow: 0 0 14px rgba(255, 107, 0, 0.45); }
+
+  .q-tag {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding-left: 16px;
+    font-family: var(--font-display);
+    font-size: 38px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: 3px;
+    color: rgba(255, 248, 238, 0.82);
+    text-transform: uppercase;
+  }
+
+  .q-cell {
+    font-family: var(--font-display);
+    font-size: 50px;
+    font-weight: 800;
+    line-height: 1;
+    text-align: center;
+    color: var(--cream);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+
+  .q-cell--away { color: var(--cream-soft); }
+  .q-cell.q-active { color: var(--orange-hot); text-shadow: 0 0 14px rgba(255, 107, 0, 0.34); }
+  .q-cell--away.q-active { color: var(--cream); }
+
+  .stats {
+    position: relative;
+    display: grid;
+    grid-template-rows: repeat(7, minmax(0, 1fr));
+    row-gap: 4px;
+    padding: 24px 326px 16px;
+    min-height: 0;
+  }
+
+  .stats::before {
+    content: '';
+    position: absolute;
+    left: 230px;
+    right: 230px;
+    top: 10px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 107, 0, 0.32), transparent);
+  }
+
+  .stat-row {
+    position: relative;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 170px 1fr 170px;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 107, 0, 0.07);
+  }
+
+  .stat-row:last-child { border-bottom: none; }
+
+  .sv {
+    font-family: var(--font-display);
+    font-size: 56px;
+    font-weight: 800;
+    line-height: 0.92;
+    color: var(--cream);
+    text-align: center;
+    letter-spacing: 0.02em;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+    text-shadow: 0 8px 18px rgba(0, 0, 0, 0.66);
+  }
+
+  .stat-row .sv:last-of-type { color: rgba(243, 234, 223, 0.88); }
+
+  .stat-mid {
+    position: relative;
+    min-width: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .sl {
+    position: relative;
+    z-index: 2;
+    min-width: 420px;
+    padding: 0 18px;
+    font-family: var(--font-ui);
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 5px;
+    color: rgba(255, 248, 238, 0.92);
+    text-align: center;
+    text-transform: uppercase;
+    background: linear-gradient(90deg, transparent 0%, rgba(5, 2, 1, 0.76) 17%, rgba(5, 2, 1, 0.86) 50%, rgba(5, 2, 1, 0.76) 83%, transparent 100%);
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.78);
+  }
+
+  .compare {
+    position: absolute;
+    left: 7%;
+    right: 7%;
+    top: calc(50% + 18px);
+    height: 4px;
+    display: grid;
+    grid-template-columns: var(--home-pct, 50%) 1fr;
+    opacity: 0.9;
+  }
+
+  .compare::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 2px;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.12);
+  }
+
+  .bar-home,
+  .bar-away {
+    position: relative;
+    z-index: 1;
+    height: 2px;
+    align-self: center;
+  }
+
+  .bar-home {
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 107, 0, 0.38) 18%, rgba(255, 107, 0, 0.94) 100%);
+    box-shadow: 0 0 12px rgba(255, 107, 0, 0.32);
+  }
+
+  .bar-away {
+    background: linear-gradient(90deg, rgba(243, 234, 223, 0.22) 0%, rgba(243, 234, 223, 0.08) 72%, transparent 100%);
+  }
+
+  @keyframes flash-val {
+    0% { color: var(--orange-hot); transform: scale(1.08); }
+    65% { color: var(--orange-hot); transform: scale(1); }
+    100% { color: var(--cream); transform: scale(1); }
+  }
+
+  .sv.changed,
+  .q-cell.changed,
+  .score-nums .changed {
+    animation: flash-val 0.75s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+  }
+
+  .footer {
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 107, 0, 0.34) 20%, rgba(255, 144, 38, 0.86) 50%, rgba(255, 107, 0, 0.34) 80%, transparent 100%);
+    box-shadow: 0 -10px 34px rgba(255, 107, 0, 0.16);
+  }
+
+  .dim { opacity: 0.28; }
+
+</style>
+</head>
+<body>
+<div class="panel">
+  <header class="header">
+    <div class="status-kicker" id="status">ФИНАЛЬНЫЙ СЧЁТ</div>
+    <div class="league-title" id="league-label">НБА</div>
+  </header>
+
+  <main class="hero">
+    <section class="team-side team-side--home">
+      <div class="logo-wrap" id="h-logo-wrap">
+        <img class="team-logo" id="h-logo" src="" alt="" referrerpolicy="no-referrer">
+      </div>
+      <div class="team-texts">
+        <div class="team-city" id="h-city">--</div>
+        <div class="team-name" id="h-name">--</div>
+      </div>
+    </section>
+
+    <section class="score-col">
+      <div class="score-nums">
+        <span id="h-total">--</span>
+        <span class="score-sep">:</span>
+        <span id="a-total">--</span>
+      </div>
+    </section>
+
+    <section class="team-side team-side--away">
+      <div class="logo-wrap" id="a-logo-wrap">
+        <img class="team-logo" id="a-logo" src="" alt="" referrerpolicy="no-referrer">
+      </div>
+      <div class="team-texts">
+        <div class="team-city" id="a-city">--</div>
+        <div class="team-name" id="a-name">--</div>
+      </div>
+    </section>
+
+    <div class="section-line"></div>
+  </main>
+
+  <section class="quarters" id="quarters">
+    <div class="q-grid q-head" id="q-head">
+      <div class="q-th"></div>
+      <div class="q-th" id="lbl-q1">Q1</div>
+      <div class="q-th" id="lbl-q2">Q2</div>
+      <div class="q-th" id="lbl-q3">Q3</div>
+      <div class="q-th" id="lbl-q4">Q4</div>
+      <div class="q-th q-ot" id="lbl-ot">OT</div>
+    </div>
+    <div class="q-grid q-data" id="q-home">
+      <div class="q-tag" id="h-tag">--</div>
+      <div class="q-cell" id="h-q1">--</div>
+      <div class="q-cell" id="h-q2">--</div>
+      <div class="q-cell" id="h-q3">--</div>
+      <div class="q-cell" id="h-q4">--</div>
+      <div class="q-cell q-ot" id="h-ot">--</div>
+    </div>
+    <div class="q-grid q-data" id="q-away">
+      <div class="q-tag" id="a-tag">--</div>
+      <div class="q-cell q-cell--away" id="a-q1">--</div>
+      <div class="q-cell q-cell--away" id="a-q2">--</div>
+      <div class="q-cell q-cell--away" id="a-q3">--</div>
+      <div class="q-cell q-cell--away" id="a-q4">--</div>
+      <div class="q-cell q-cell--away q-ot" id="a-ot">--</div>
+    </div>
+  </section>
+
+  <section class="stats">
+    <div class="stat-row" data-key="fg">
+      <div class="sv" id="h-fg">--</div>
+      <div class="stat-mid">
+        <div class="compare" id="bar-fg"><div class="bar-home"></div><div class="bar-away"></div></div>
+        <div class="sl">БРОСКИ С ИГРЫ</div>
+      </div>
+      <div class="sv" id="a-fg">--</div>
+    </div>
+    <div class="stat-row" data-key="3p">
+      <div class="sv" id="h-3p">--</div>
+      <div class="stat-mid">
+        <div class="compare" id="bar-3p"><div class="bar-home"></div><div class="bar-away"></div></div>
+        <div class="sl">ТРЁХОЧКОВЫЕ</div>
+      </div>
+      <div class="sv" id="a-3p">--</div>
+    </div>
+    <div class="stat-row" data-key="ft">
+      <div class="sv" id="h-ft">--</div>
+      <div class="stat-mid">
+        <div class="compare" id="bar-ft"><div class="bar-home"></div><div class="bar-away"></div></div>
+        <div class="sl">ШТРАФНЫЕ БРОСКИ</div>
+      </div>
+      <div class="sv" id="a-ft">--</div>
+    </div>
+    <div class="stat-row" data-key="reb">
+      <div class="sv" id="h-reb">--</div>
+      <div class="stat-mid">
+        <div class="compare" id="bar-reb"><div class="bar-home"></div><div class="bar-away"></div></div>
+        <div class="sl">ПОДБОРЫ</div>
+      </div>
+      <div class="sv" id="a-reb">--</div>
+    </div>
+    <div class="stat-row" data-key="ast">
+      <div class="sv" id="h-ast">--</div>
+      <div class="stat-mid">
+        <div class="compare" id="bar-ast"><div class="bar-home"></div><div class="bar-away"></div></div>
+        <div class="sl">ПЕРЕДАЧИ</div>
+      </div>
+      <div class="sv" id="a-ast">--</div>
+    </div>
+    <div class="stat-row" data-key="tov">
+      <div class="sv" id="h-tov">--</div>
+      <div class="stat-mid">
+        <div class="compare" id="bar-tov"><div class="bar-home"></div><div class="bar-away"></div></div>
+        <div class="sl">ПОТЕРИ</div>
+      </div>
+      <div class="sv" id="a-tov">--</div>
+    </div>
+    <div class="stat-row" data-key="pf">
+      <div class="sv" id="h-pf">--</div>
+      <div class="stat-mid">
+        <div class="compare" id="bar-pf"><div class="bar-home"></div><div class="bar-away"></div></div>
+        <div class="sl">ФОЛЫ</div>
+      </div>
+      <div class="sv" id="a-pf">--</div>
+    </div>
+  </section>
+
+  <div class="footer"></div>
+</div>
+
+<script>
+  const PREV = {};
+
+  function fitStage() {
+    const scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+    document.documentElement.style.setProperty('--stage-scale', String(scale));
+  }
+
+  window.addEventListener('resize', fitStage);
+  fitStage();
+
+  function normalizeTeamText(value) {
+    return String(value || '')
+      .toUpperCase()
+      .replace(/Ё/g, 'Е')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function inferLeagueLabel(data, homeName, awayName) {
+    const raw = normalizeTeamText(data && data.league ? data.league : '');
+    const all = normalizeTeamText(raw + ' ' + homeName + ' ' + awayName);
+    if (raw && raw.indexOf('WNBA') === -1 && raw.indexOf('ЖЕН') === -1 && raw.indexOf('WOMEN') === -1 && raw.indexOf('WOMAN') === -1) {
+      return raw;
+    }
+    const womenMarkers = [
+      'ЖЕН', 'WNBA', 'WOMEN', 'WOMAN',
+      'ЛИБЕРТИ', 'ВИНГС', 'ШТОРМ', 'ЭЙСЕС', 'МЕРКУРИ', 'МИСТИКС', 'СКАЙ', 'ДРИМ',
+      'СПАРКС', 'ЛИНКС', 'КОННЕКТИКУТ САН', 'ФИВЕР', 'ВАЛКИРИЗ',
+      'LIBERTY', 'WINGS', 'STORM', 'ACES', 'MERCURY', 'MYSTICS', 'SKY', 'DREAM',
+      'SPARKS', 'LYNX', 'CONNECTICUT SUN', 'FEVER', 'VALKYRIES'
+    ];
+    for (let i = 0; i < womenMarkers.length; i++) {
+      if (all.indexOf(womenMarkers[i]) !== -1) return 'ЖЕНСКАЯ ЛИГА';
+    }
+    return 'НБА';
+  }
+
+  function toMediaUrl(pathOrUrl) {
+    if (!pathOrUrl) return '';
+    const raw = String(pathOrUrl).trim();
+    if (!raw) return '';
+    if (/^https?:\/\//i.test(raw)) return raw;
+    return new URL(raw.replace(/^\/+/, ''), window.location.origin + '/').href;
+  }
+
+  function splitTeamName(name, abbr) {
+    const clean = String(name || '')
+      .replace(/\s*\((ж|w|women|woman)\)\s*$/i, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (!clean) return { city: '', team: abbr || '--' };
+    const parts = clean.split(' ');
+    if (parts.length === 1) return { city: '', team: parts[0] };
+    return {
+      city: parts.slice(0, -1).join(' '),
+      team: parts[parts.length - 1]
+    };
+  }
+
+  function setLogo(imgId, value) {
+    const img = document.getElementById(imgId);
+    if (!img) return;
+    const url = toMediaUrl(value);
+    if (!url) {
+      img.removeAttribute('src');
+      img.style.display = 'none';
+      return;
+    }
+    img.onerror = function() { img.style.display = 'none'; };
+    img.onload = function() { img.style.display = 'block'; };
+    if (img.src !== url) img.src = url;
+  }
+
+  function setV(id, value) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const empty = value == null || value === '';
+    const next = empty ? '--' : String(value);
+    if (PREV[id] !== undefined && PREV[id] !== next) {
+      el.classList.remove('changed');
+      void el.offsetWidth;
+      el.classList.add('changed');
+    }
+    PREV[id] = next;
+    el.textContent = next;
+    el.classList.toggle('dim', empty);
+  }
+
+  function statNum(value) {
+    const match = String(value == null ? '' : value).match(/-?\d+/);
+    return match ? Math.max(0, parseInt(match[0], 10)) : 0;
+  }
+
+  function stableStatValue(id, value) {
+    if (value == null || value === '') return PREV[id] !== undefined ? PREV[id] : value;
+    return value;
+  }
+
+  function setBar(key, homeValue, awayValue) {
+    const el = document.getElementById('bar-' + key);
+    if (!el) return;
+    const h = statNum(homeValue);
+    const a = statNum(awayValue);
+    const total = h + a;
+    const pct = total > 0 ? Math.max(4, Math.min(96, (h / total) * 100)) : 50;
+    el.style.setProperty('--home-pct', pct.toFixed(2) + '%');
+  }
+
+  function setTeam(prefix, team) {
+    const parts = splitTeamName(team.name, team.abbr);
+    setV(prefix + '-city', parts.city || team.abbr || '');
+    setV(prefix + '-name', parts.team || team.abbr || '--');
+    setV(prefix + '-tag', parts.team || team.abbr || '--');
+  }
+
+  function setQuarterColumns(hasOt) {
+    const columns = hasOt ? 5 : 4;
+    document.getElementById('quarters').style.setProperty('--q-cols', columns);
+    document.querySelectorAll('.q-ot').forEach(function(el) {
+      el.style.display = hasOt ? '' : 'none';
+    });
+  }
+
+  function highlightQ(quarter) {
+    const map = { Q1: 'q1', Q2: 'q2', Q3: 'q3', Q4: 'q4', OT: 'ot' };
+    const activeKey = map[String(quarter || '').toUpperCase()] || '';
+    ['q1', 'q2', 'q3', 'q4', 'ot'].forEach(function(q) {
+      ['lbl-', 'h-', 'a-'].forEach(function(prefix) {
+        const el = document.getElementById(prefix + q);
+        if (el) el.classList.toggle('q-active', q === activeKey);
+      });
+    });
+  }
+
+  async function update() {
+    try {
+      const response = await fetch(new URL('json/result.json?_=' + Date.now(), window.location.origin + '/').href, { cache: 'no-store' });
+      if (!response.ok) return;
+      const data = await response.json();
+      const h = data.home || {};
+      const a = data.away || {};
+      const live = data.status === 'live';
+      const over = data.status === 'over';
+
+      document.getElementById('status').textContent = over
+        ? 'ФИНАЛЬНЫЙ СЧЁТ'
+        : live && data.quarter
+          ? data.quarter + (data.time ? '  ' + data.time : '')
+          : 'МАТЧ';
+      document.getElementById('league-label').textContent = inferLeagueLabel(data, h.name, a.name);
+
+      setTeam('h', h);
+      setTeam('a', a);
+      setLogo('h-logo', h.logo);
+      setLogo('a-logo', a.logo);
+
+      setV('h-total', h.total);
+      setV('a-total', a.total);
+
+      ['q1', 'q2', 'q3', 'q4'].forEach(function(q) {
+        setV('h-' + q, h[q]);
+        setV('a-' + q, a[q]);
+      });
+
+      const hasOt = !!(h.ot || a.ot);
+      setQuarterColumns(hasOt);
+      if (hasOt) {
+        setV('h-ot', h.ot);
+        setV('a-ot', a.ot);
+      }
+      highlightQ(data.quarter);
+
+      [
+        ['fg',  h.FG,    a.FG],
+        ['3p',  h['3P'], a['3P']],
+        ['ft',  h.FT,    a.FT],
+        ['reb', h.REB,   a.REB],
+        ['ast', h.AST,   a.AST],
+        ['tov', h.TOV,   a.TOV],
+        ['pf',  h.PF,    a.PF]
+      ].forEach(function(item) {
+        const hId = 'h-' + item[0];
+        const aId = 'a-' + item[0];
+        const hv = stableStatValue(hId, item[1]);
+        const av = stableStatValue(aId, item[2]);
+        setV(hId, hv);
+        setV(aId, av);
+        setBar(item[0], hv, av);
+      });
+    } catch (error) {
+      console.warn(error);
+    }
+  }
+
+  update();
+  setInterval(update, 10000);
+</script>
+</body>
+</html>
