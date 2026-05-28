@@ -29,7 +29,7 @@
   .card {
     position: absolute;
     bottom: 0; left: 0; right: 0;
-    height: 500px;
+    height: 420px;
     overflow: hidden;
     transform: translateY(100%);
     transition: transform 0.52s cubic-bezier(0.22, 0.61, 0.36, 1);
@@ -53,10 +53,10 @@
   .photo-col {
     position: absolute;
     z-index: 6;
-    left: 355px;
-    bottom: 0;
+    left: 360px;
+    bottom: -2px;
     width: 380px;
-    height: 470px;
+    height: 405px;
     display: flex;
     align-items: flex-end;
     justify-content: center;
@@ -65,7 +65,7 @@
 
   .photo-wrap {
     width: 380px;
-    height: 470px;
+    height: 405px;
     border-radius: 0;
     overflow: visible;
     position: relative;
@@ -77,7 +77,7 @@
     bottom: 0;
     transform-origin: bottom center;
     width: auto;
-    height: 470px;
+    height: 405px;
     max-width: none;
     object-fit: contain;
     object-position: bottom center;
@@ -97,10 +97,10 @@
   .photo-disc {
     position: absolute;
     z-index: 2;
-    left: 245px;
-    bottom: -285px;
-    width: 540px;
-    height: 540px;
+    left: 240px;
+    bottom: -355px;
+    width: 610px;
+    height: 610px;
     border-radius: 50%;
     background: #000000;
     box-shadow: none;
@@ -111,11 +111,11 @@
   .meta {
     position: absolute;
     z-index: 7;
-    left: 930px;
-    right: 85px;
-    bottom: 58px;
+    left: 940px;
+    right: 55px;
+    bottom: 42px;
     display: flex; flex-direction: column;
-    gap: 26px;
+    gap: 30px;
   }
 
   .name-line {
@@ -124,9 +124,9 @@
 
   .player-name {
     font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
-    font-size: 56px; line-height: 0.92;
+    font-size: 60px; line-height: 0.9;
     font-weight: 900;
-    letter-spacing: 0.3px; color: #ffffff;
+    letter-spacing: 0.4px; color: #ffffff;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     text-transform: uppercase;
     text-shadow: none;
@@ -138,17 +138,17 @@
 
   .stats-row {
     display: grid;
-    grid-template-columns: repeat(3, 142px);
-    gap: 100px;
+    grid-template-columns: repeat(3, 145px);
+    gap: 105px;
     align-items: end;
-    margin-left: 100px;
+    margin-left: 115px;
     width: max-content;
   }
 
   .stat-item {
     display: flex; flex-direction: column; align-items: center;
     gap: 6px;
-    min-width: 142px;
+    min-width: 145px;
     padding: 0;
     border-right: none;
     position: relative;
@@ -166,7 +166,7 @@
     white-space: nowrap;
   }
   .stat-lbl {
-    font-size: 18px; line-height: 1;
+    font-size: 20px; line-height: 1;
     font-weight: 900;
     color: #ffffff;
     letter-spacing: 0;
@@ -179,14 +179,14 @@
     z-index: 8;
     left: 170px;
     bottom: 95px;
-    width: 182px;
-    height: 182px;
+    width: 165px;
+    height: 165px;
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
   }
 
   .team-logo-wrap {
-    width: 182px; height: 182px;
+    width: 165px; height: 165px;
     border-radius: 50%;
     background: var(--white);
     box-shadow: none;
@@ -195,7 +195,7 @@
   }
 
   .team-logo {
-    width: 126px; height: 126px;
+    width: 115px; height: 115px;
     object-fit: contain;
     filter: none;
     display: none;
@@ -330,8 +330,8 @@
 
   function preferredPlayerPhoto(player) {
     if (!player) return '';
-    // Mixed crop styles cannot be perfectly standardized without photo_scale/photo_offset_*.
-    // For the most stable layout, use one source type: transparent player cutout PNGs.
+    // Для идеального единообразия нужны изображения одного типа — transparent cutout PNG с похожим кропом.
+    // Если используются разные headshot/cutout, индивидуально настраивать только photo_scale/photo_offset_x/photo_offset_y.
     return String(
       player.photo_overlay ||
       player.photo_cutout ||
@@ -416,9 +416,9 @@
   function fitName() {
     const el = document.getElementById('player-name');
     if (!el) return;
-    el.style.fontSize = '56px';
-    let size = 56;
-    while (el.scrollWidth > el.clientWidth && size > 40) {
+    el.style.fontSize = '60px';
+    let size = 60;
+    while (el.scrollWidth > el.clientWidth && size > 42) {
       size -= 2;
       el.style.fontSize = size + 'px';
     }
