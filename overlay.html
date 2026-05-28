@@ -527,19 +527,21 @@
 
   .player-stats-view {
     display: grid;
-    grid-template-rows: 86px minmax(0, 1fr);
-    padding: 16px 190px 22px;
+    grid-template-rows: 64px minmax(0, 1fr);
+    padding: 4px 154px 8px;
     background:
-      linear-gradient(90deg, transparent, rgba(255, 107, 0, 0.038) 50%, transparent),
-      linear-gradient(180deg, rgba(0, 0, 0, 0.04) 0%, rgba(0, 0, 0, 0.26) 100%);
+      radial-gradient(ellipse 52% 70% at 50% 45%, rgba(255, 107, 0, 0.08), transparent 72%),
+      linear-gradient(90deg, rgba(255, 107, 0, 0.045), rgba(255, 107, 0, 0.02) 50%, rgba(255, 107, 0, 0.045)),
+      linear-gradient(180deg, rgba(0, 0, 0, 0.06) 0%, rgba(0, 0, 0, 0.34) 100%);
+    border-top: 1px solid rgba(255, 107, 0, 0.2);
   }
 
   .player-stats-view::before {
     content: '';
     position: absolute;
-    left: 210px;
-    right: 210px;
-    top: 18px;
+    left: 160px;
+    right: 160px;
+    top: 6px;
     height: 1px;
     background: linear-gradient(90deg, transparent, rgba(255, 107, 0, 0.42), transparent);
   }
@@ -550,10 +552,10 @@
     justify-content: center;
     min-width: 0;
     font-family: var(--font-ui);
-    font-size: clamp(18px, 1.45vw, 28px);
+    font-size: clamp(15px, 1.15vw, 22px);
     font-weight: 800;
     line-height: 1;
-    letter-spacing: 8px;
+    letter-spacing: 5px;
     color: rgba(255, 248, 238, 0.92);
     text-transform: uppercase;
     text-align: center;
@@ -563,16 +565,20 @@
   .player-stats-board {
     min-height: 0;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 92px minmax(0, 1fr);
-    column-gap: 24px;
+    grid-template-columns: minmax(0, 1fr) 40px minmax(0, 1fr);
+    column-gap: 8px;
     align-items: stretch;
+    padding: 10px 8px 6px;
+    border: 1px solid rgba(255, 107, 0, 0.16);
+    background: linear-gradient(180deg, rgba(255, 107, 0, 0.06), rgba(5, 2, 1, 0.36));
+    box-shadow: inset 0 0 26px rgba(255, 107, 0, 0.09), 0 12px 28px rgba(0, 0, 0, 0.46);
   }
 
   .player-team-panel {
     min-width: 0;
     min-height: 0;
     display: grid;
-    grid-template-rows: 54px 36px repeat(6, minmax(0, 1fr));
+    grid-template-rows: 44px 28px repeat(5, minmax(44px, 1fr));
     overflow: hidden;
   }
 
@@ -620,14 +626,14 @@
   .player-row {
     min-width: 0;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 66px 66px 66px;
+    grid-template-columns: 58px minmax(0, 1fr) 74px 74px 74px;
     column-gap: 8px;
     align-items: center;
   }
 
   .player-stat-header {
     font-family: var(--font-ui);
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 800;
     letter-spacing: 2.5px;
     color: rgba(255, 138, 31, 0.82);
@@ -642,11 +648,14 @@
 
   .player-row {
     position: relative;
-    border-bottom: 1px solid rgba(255, 107, 0, 0.075);
+    border-bottom: 1px solid rgba(255, 107, 0, 0.12);
     overflow: hidden;
   }
 
   .player-row:last-child { border-bottom: none; }
+
+  .player-row:nth-child(odd) { background: rgba(255, 255, 255, 0.02); }
+  .player-row:nth-child(even) { background: rgba(255, 107, 0, 0.025); }
 
   .player-row.is-best::before {
     content: '';
@@ -662,12 +671,14 @@
   .player-id {
     min-width: 0;
     display: grid;
-    grid-template-columns: 48px minmax(0, 1fr);
-    column-gap: 12px;
+    grid-template-columns: subgrid;
+    grid-column: 1 / span 2;
+    column-gap: 10px;
     align-items: center;
-    padding-left: 14px;
+    padding-left: 8px;
   }
 
+  .player-col-num,
   .player-number {
     font-family: var(--font-display);
     font-size: clamp(24px, 1.8vw, 34px);
@@ -679,6 +690,7 @@
     font-feature-settings: "tnum" 1;
   }
 
+  .player-col-name,
   .player-name {
     min-width: 0;
     font-family: var(--font-display);
@@ -717,8 +729,8 @@
     content: '';
     position: absolute;
     left: 50%;
-    top: 10px;
-    bottom: 10px;
+    top: 0;
+    bottom: 0;
     width: 1px;
     transform: translateX(-50%);
     background: linear-gradient(180deg, transparent, rgba(255, 107, 0, 0.46), transparent);
@@ -726,22 +738,37 @@
   }
 
   .player-empty {
-    grid-row: 3 / span 6;
+    grid-row: 3 / span 5;
     min-width: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 24px;
+    padding: 10px 16px;
     font-family: var(--font-ui);
     font-size: clamp(14px, 1vw, 19px);
     font-weight: 800;
     line-height: 1.25;
-    letter-spacing: 3px;
+    letter-spacing: 2px;
     color: rgba(255, 248, 238, 0.64);
     text-align: center;
     text-transform: uppercase;
     border: 1px solid rgba(255, 107, 0, 0.14);
     background: rgba(5, 2, 1, 0.38);
+  }
+
+
+  .player-empty-skeleton {
+    width: min(520px, 100%);
+    display: grid;
+    row-gap: 8px;
+    margin-top: 8px;
+  }
+
+  .player-empty-line {
+    height: 12px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, rgba(243, 234, 223, 0.15), rgba(255, 107, 0, 0.26), rgba(243, 234, 223, 0.15));
+    opacity: 0.58;
   }
 
   @keyframes flash-val {
@@ -1268,7 +1295,7 @@
   }
 
   function playerStatNumber(player) {
-    const value = playerStat(player, ['PTS', 'pts', 'PPG', 'points']);
+    const value = playerStat(player, ['PTS','pts','Очки','очки','O','Points','PPG','points']);
     const num = parseFloat(String(value == null ? '' : value).replace(',', '.'));
     return Number.isFinite(num) ? num : -1;
   }
@@ -1285,7 +1312,22 @@
     return parts[parts.length - 1];
   }
 
-  function sortedPlayers(players) {
+  
+  function getTeamPlayers(data, side) {
+    const direct = data && data[side] && Array.isArray(data[side].players) ? data[side].players : null;
+    if (direct) return direct;
+    const nested = data && data.players && Array.isArray(data.players[side]) ? data.players[side] : null;
+    if (nested) return nested;
+    const alt = data && data.playerStats && data.playerStats[side] && Array.isArray(data.playerStats[side].players) ? data.playerStats[side].players : null;
+    return alt || [];
+  }
+
+  function enrichTeam(data, side) {
+    const src = data && data[side] ? data[side] : {};
+    return Object.assign({}, src, { players: getTeamPlayers(data, side) });
+  }
+
+function sortedPlayers(players) {
     const list = Array.isArray(players) ? players.filter(function(item) { return item && typeof item === 'object'; }) : [];
     return list
       .slice()
@@ -1301,7 +1343,7 @@
         }
         return playerStatNumber(b) - playerStatNumber(a);
       })
-      .slice(0, 6);
+      .slice(0, 5);
   }
 
   function appendPlayerHeader(panel, team) {
@@ -1325,7 +1367,7 @@
   function appendPlayerColumns(panel) {
     const header = document.createElement('div');
     header.className = 'player-stat-header';
-    ['ИГРОК', 'О', 'ПДБ', 'ПАС'].forEach(function(label) {
+    ['№', 'ИГРОК', 'О', 'ПДБ', 'ПАС'].forEach(function(label) {
       const cell = document.createElement('div');
       cell.textContent = label;
       header.appendChild(cell);
@@ -1336,7 +1378,18 @@
   function appendPlayerEmpty(panel) {
     const empty = document.createElement('div');
     empty.className = 'player-empty';
-    empty.textContent = 'ДАННЫЕ ПО ИГРОКАМ ОЖИДАЮТСЯ';
+    const title = document.createElement('div');
+    title.textContent = 'ДАННЫЕ ПО ИГРОКАМ ОЖИДАЮТСЯ';
+    empty.appendChild(title);
+    const skeleton = document.createElement('div');
+    skeleton.className = 'player-empty-skeleton';
+    for (let i = 0; i < 5; i++) {
+      const line = document.createElement('div');
+      line.className = 'player-empty-line';
+      line.style.width = (100 - i * 8) + '%';
+      skeleton.appendChild(line);
+    }
+    empty.appendChild(skeleton);
     panel.appendChild(empty);
     queueFit(empty);
   }
@@ -1344,9 +1397,6 @@
   function appendPlayerRow(panel, player, index) {
     const row = document.createElement('div');
     row.className = 'player-row' + (index === 0 ? ' is-best' : '');
-
-    const id = document.createElement('div');
-    id.className = 'player-id';
 
     const number = document.createElement('div');
     number.className = 'player-number';
@@ -1357,14 +1407,13 @@
     name.className = 'player-name';
     name.textContent = normalizePlayerName(player);
 
-    id.appendChild(number);
-    id.appendChild(name);
-    row.appendChild(id);
+    row.appendChild(number);
+    row.appendChild(name);
 
     [
-      ['PTS', 'pts', 'PPG', 'points'],
-      ['REB', 'reb', 'RPG', 'rebounds'],
-      ['AST', 'ast', 'APG', 'assists']
+      ['PTS','pts','Очки','очки','O','Points','PPG','points'],
+      ['REB','reb','Подборы','подборы','ПДБ','RPG','rebounds'],
+      ['AST','ast','Передачи','передачи','ПАС','APG','assists']
     ].forEach(function(keys) {
       const stat = document.createElement('div');
       stat.className = 'player-stat';
@@ -1397,8 +1446,8 @@
   }
 
   function renderPlayerStats(data) {
-    renderPlayerPanel('player-home', data && data.home ? data.home : {});
-    renderPlayerPanel('player-away', data && data.away ? data.away : {});
+    renderPlayerPanel('player-home', enrichTeam(data, 'home'));
+    renderPlayerPanel('player-away', enrichTeam(data, 'away'));
   }
 
   function queueFit(el) {
