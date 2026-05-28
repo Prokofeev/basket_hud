@@ -46,5 +46,5 @@
     "schema_version": 1,
     "generation": 1
   },
-  "screen": "team_stats"
+  "screen": "player_stats"
 }

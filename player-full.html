@@ -136,6 +136,15 @@
       linear-gradient(180deg, rgba(30, 12, 3, 0.16), transparent 72%);
   }
 
+  /* Fixed left composition area: only player photo may be tuned per player via photo_scale/photo_offset_* */
+  .player-area,
+  .photo-area,
+  .player-photo-area,
+  .left-player {
+    position: relative;
+    overflow: hidden;
+  }
+
   .identity::before {
     content: '';
     position: absolute;
@@ -206,8 +215,8 @@
   .player-photo-frame {
     position: absolute;
     left: 0;
-    bottom: -8px;
-    width: 100%;
+    bottom: 84px;
+    width: min(870px, 100%);
     height: 760px;
     overflow: hidden;
     z-index: 3;
@@ -259,7 +268,7 @@
   .player-copy {
     position: absolute;
     left: 38px;
-    bottom: 38px;
+    bottom: 145px;
     width: min(800px, calc(100% - 72px));
     z-index: 6;
     min-height: 150px;
