@@ -5,20 +5,13 @@
 <title>Player Card Overlay</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Inter:wght@700;800;900&display=swap" rel="stylesheet">
 <style>
   :root {
-    --amber:   #FF6B00;
-    --amber-h: #FF9130;
-    --amber-m: rgba(255, 107, 0, 0.40);
-    --t1: #F6EDE3;
-    --t2: rgba(246, 237, 227, 0.54);
-    --t3: rgba(246, 237, 227, 0.20);
-    --la: rgba(255, 107, 0, 0.22);
-    --s0: #050201;
-    --s1: #090402;
-    --s2: #0E0502;
-    --s3: #180903;
+    --orange: #ff7115;
+    --black: #030303;
+    --white: #ffffff;
+    --ink: #060606;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -30,111 +23,99 @@
     font-family: 'Inter', system-ui, sans-serif;
     pointer-events: none;
     -webkit-font-smoothing: antialiased;
-    color: var(--t1);
+    color: var(--white);
   }
 
-  /* ── CARD — positioned at the very bottom, slides up ── */
   .card {
     position: absolute;
     bottom: 0; left: 0; right: 0;
-    height: 240px;
-    display: flex; flex-direction: row; align-items: flex-end;
-    padding: 0 80px 0 80px;
-
-    /* slide-in animation — transform drives the in/out */
+    height: 500px;
+    overflow: hidden;
     transform: translateY(100%);
     transition: transform 0.52s cubic-bezier(0.22, 0.61, 0.36, 1);
   }
   .card--visible { transform: translateY(0); }
 
-  /* Dark warm background bar */
+  .card::before,
+  .card::after { display: none !important; }
+
   .card-bg {
     position: absolute;
-    bottom: 0; left: 0; right: 0; top: 0;
-    background:
-      linear-gradient(90deg,
-        rgba(30, 12, 3, 0.97)  0%,
-        rgba(18,  7, 2, 0.98) 45%,
-        rgba(12,  5, 1, 0.96) 100%);
-    border-top: 1px solid var(--la);
+    left: 0; right: 0; bottom: 0;
+    height: 220px;
+    background: #ff7414;
+    box-shadow: none;
   }
 
-  /* Amber accent stripe at the very top of the card */
-  .card-bg::before {
-    content: '';
-    position: absolute; top: -3px; left: 0; right: 0; height: 3px;
-    background: linear-gradient(90deg,
-      transparent    0%,
-      var(--amber)  10%,
-      var(--amber-h) 50%,
-      var(--amber)  90%,
-      transparent  100%);
-    box-shadow: 0 0 18px 3px rgba(255, 107, 0, 0.20);
-  }
+  .card-bg::before,
+  .card-bg::after { display: none !important; }
 
-  /* Film grain */
-  .card-bg::after {
-    content: '';
-    position: absolute; inset: 0;
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.80' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23g)' opacity='0.025'/%3E%3C/svg%3E");
-    pointer-events: none;
-  }
-
-  /* ── PHOTO — floats above the card bar ── */
   .photo-col {
-    position: relative; z-index: 2;
-    flex-shrink: 0;
-    padding-bottom: 24px;
+    position: absolute;
+    z-index: 6;
+    left: 355px;
+    bottom: 0;
+    width: 380px;
+    height: 470px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    overflow: visible;
   }
 
   .photo-wrap {
-    width: 188px; height: 188px;
-    border-radius: 50%;
-    overflow: hidden;
-    background: radial-gradient(circle at 50% 38%,
-      rgba(255, 107, 0, 0.14) 0%,
-      rgba(  5,   2, 0, 0.90) 64%);
-    box-shadow:
-      0 0 0 2px rgba(255, 107,  0, 0.30),
-      0 0 0 6px rgba(255, 107,  0, 0.07),
-      inset 0 1px 0 rgba(255, 170, 50, 0.15),
-      0 16px 48px rgba(0, 0, 0, 0.80);
-    display: flex; align-items: center; justify-content: center;
+    width: 380px;
+    height: 470px;
+    border-radius: 0;
+    overflow: visible;
     position: relative;
   }
 
   .player-photo {
-    width: 100%; height: 100%;
-    object-fit: cover; object-position: top center;
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    transform-origin: bottom center;
+    width: auto;
+    height: 470px;
+    max-width: none;
+    object-fit: contain;
+    object-position: bottom center;
     display: none;
-    position: relative; z-index: 1;
+    z-index: 1;
+    filter: none;
   }
   .player-photo-fallback {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 68px; color: rgba(246, 237, 227, 0.30);
-    letter-spacing: 2px;
+    font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+    font-size: 126px; color: rgba(255, 255, 255, 0.88);
+    letter-spacing: 0;
     position: relative; z-index: 0;
     display: block;
+    transform: translateY(20px);
   }
 
-  /* ── DIVIDER ── */
-  .divider {
-    flex-shrink: 0;
-    width: 1px; height: 160px;
-    background: linear-gradient(180deg,
-      transparent 0%, var(--la) 25%, var(--la) 75%, transparent 100%);
-    margin: 0 36px 32px 32px;
-    position: relative; z-index: 1;
+  .photo-disc {
+    position: absolute;
+    z-index: 2;
+    left: 245px;
+    bottom: -285px;
+    width: 540px;
+    height: 540px;
+    border-radius: 50%;
+    background: #000000;
+    box-shadow: none;
   }
 
-  /* ── META ── */
+  .photo-disc::after { display: none !important; }
+
   .meta {
-    flex: 1; min-width: 0;
+    position: absolute;
+    z-index: 7;
+    left: 930px;
+    right: 85px;
+    bottom: 58px;
     display: flex; flex-direction: column;
-    justify-content: flex-end;
-    gap: 8px;
-    padding-bottom: 28px;
-    position: relative; z-index: 1;
+    gap: 26px;
   }
 
   .name-line {
@@ -142,84 +123,94 @@
   }
 
   .player-name {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 80px; line-height: 0.88;
-    letter-spacing: 1px; color: var(--t1);
+    font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+    font-size: 56px; line-height: 0.92;
+    font-weight: 900;
+    letter-spacing: 0.3px; color: #ffffff;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    text-transform: uppercase;
+    text-shadow: none;
   }
 
   .player-number {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 52px; line-height: 0.88;
-    color: var(--amber); flex-shrink: 0;
+    display: none !important;
   }
 
-  .player-sub {
-    font-size: 12px; font-weight: 700;
-    color: var(--t2); letter-spacing: 3px;
-    text-transform: uppercase;
-  }
-
-  /* ── STATS ROW ── */
   .stats-row {
-    display: flex; align-items: center; gap: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 142px);
+    gap: 100px;
+    align-items: end;
+    margin-left: 100px;
+    width: max-content;
   }
 
   .stat-item {
     display: flex; flex-direction: column; align-items: center;
-    gap: 2px;
-    padding: 0 22px;
-    border-right: 1px solid rgba(255, 107, 0, 0.14);
+    gap: 6px;
+    min-width: 142px;
+    padding: 0;
+    border-right: none;
+    position: relative;
   }
-  .stat-item:first-child { padding-left: 0; }
-  .stat-item:last-child  { border-right: none; }
+
+  .stat-item::before { display: none !important; }
 
   .stat-val {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 48px; line-height: 1;
-    color: var(--t1);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 50px; line-height: 0.9;
+    font-weight: 900;
+    color: #000000;
     font-variant-numeric: tabular-nums;
     font-feature-settings: "tnum" 1;
+    white-space: nowrap;
   }
   .stat-lbl {
-    font-size: 9px; font-weight: 800;
-    color: rgba(255, 107, 0, 0.44);
-    letter-spacing: 3px; text-transform: uppercase;
+    font-size: 18px; line-height: 1;
+    font-weight: 900;
+    color: #ffffff;
+    letter-spacing: 0;
+    text-transform: uppercase;
+    white-space: nowrap;
   }
 
-  /* ── TEAM TAG (right side) ── */
   .team-col {
-    flex-shrink: 0;
+    position: absolute;
+    z-index: 8;
+    left: 170px;
+    bottom: 95px;
+    width: 182px;
+    height: 182px;
     display: flex; flex-direction: column;
-    align-items: flex-end; justify-content: flex-end;
-    padding-bottom: 28px; padding-left: 40px;
-    position: relative; z-index: 1;
-    gap: 6px;
+    align-items: center; justify-content: center;
   }
 
   .team-logo-wrap {
-    width: 80px; height: 80px;
+    width: 182px; height: 182px;
     border-radius: 50%;
-    background: radial-gradient(circle at 50% 38%,
-      rgba(255, 107, 0, 0.10) 0%, rgba(5, 2, 0, 0.90) 64%);
-    box-shadow:
-      0 0 0 1px rgba(255, 107, 0, 0.22),
-      0 0 0 3px rgba(255, 107, 0, 0.05);
+    background: var(--white);
+    box-shadow: none;
     display: flex; align-items: center; justify-content: center;
     overflow: hidden;
   }
 
   .team-logo {
-    width: 60px; height: 60px;
+    width: 126px; height: 126px;
     object-fit: contain;
-    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.80));
+    filter: none;
     display: none;
   }
 
   .team-abbr-fallback {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 28px; color: rgba(246, 237, 227, 0.40);
-    letter-spacing: 1px;
+    font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+    font-size: 48px; color: #111;
+    letter-spacing: 0;
+  }
+
+  .player-sub,
+  .divider,
+  .stat-item--extra {
+    display: none !important;
   }
 </style>
 </head>
@@ -227,15 +218,14 @@
 
 <div class="card" id="card">
   <div class="card-bg"></div>
+  <div class="photo-disc"></div>
 
   <div class="photo-col">
     <div class="photo-wrap" id="photo-wrap">
       <img class="player-photo" id="player-photo" src="" alt="" referrerpolicy="no-referrer">
-      <div class="player-photo-fallback" id="photo-fallback">?</div>
+      <div class="player-photo-fallback" id="photo-fallback"></div>
     </div>
   </div>
-
-  <div class="divider"></div>
 
   <div class="meta">
     <div class="name-line">
@@ -246,23 +236,27 @@
     <div class="stats-row">
       <div class="stat-item">
         <div class="stat-val" id="p-ppg">--</div>
-        <div class="stat-lbl">PPG</div>
+        <div class="stat-lbl">Очки</div>
       </div>
       <div class="stat-item">
         <div class="stat-val" id="p-rpg">--</div>
-        <div class="stat-lbl">RPG</div>
+        <div class="stat-lbl">Подборы</div>
       </div>
       <div class="stat-item">
+        <div class="stat-val" id="p-fg">--</div>
+        <div class="stat-lbl">С игры</div>
+      </div>
+      <div class="stat-item stat-item--extra">
         <div class="stat-val" id="p-apg">--</div>
-        <div class="stat-lbl">APG</div>
+        <div class="stat-lbl">Передачи</div>
       </div>
-      <div class="stat-item">
+      <div class="stat-item stat-item--extra">
         <div class="stat-val" id="p-stl">--</div>
-        <div class="stat-lbl">STL</div>
+        <div class="stat-lbl">Перехваты</div>
       </div>
-      <div class="stat-item">
+      <div class="stat-item stat-item--extra">
         <div class="stat-val" id="p-blk">--</div>
-        <div class="stat-lbl">BLK</div>
+        <div class="stat-lbl">Блоки</div>
       </div>
     </div>
   </div>
@@ -319,12 +313,127 @@
     img.src = src;
   }
 
+  function numberOrDefault(value, fallback) {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : fallback;
+  }
+
+  function applyPhotoTransform(player) {
+    const img = document.getElementById('player-photo');
+    if (!img) return;
+    const scale = numberOrDefault(player && player.photo_scale, 1);
+    const offsetX = numberOrDefault(player && player.photo_offset_x, 0);
+    const offsetY = numberOrDefault(player && player.photo_offset_y, 0);
+    img.style.transform =
+      'translateX(-50%) translateX(' + offsetX + 'px) translateY(' + offsetY + 'px) scale(' + scale + ')';
+  }
+
+  function preferredPlayerPhoto(player) {
+    if (!player) return '';
+    // Mixed crop styles cannot be perfectly standardized without photo_scale/photo_offset_*.
+    // For the most stable layout, use one source type: transparent player cutout PNGs.
+    return String(
+      player.photo_overlay ||
+      player.photo_cutout ||
+      player.photo_full ||
+      player.photo_transparent ||
+      player.photo ||
+      player.headshot ||
+      ''
+    ).trim();
+  }
+
+  function displayPlayerName(name) {
+    const raw = String(name || '').trim();
+    const normalized = normText(raw);
+    if (normalized.includes('тейтум')) return 'ДЖЕЙСОН ТЕЙТУМ';
+    if (normalized.includes('вембан')) return 'ВИКТОР ВЕМБАНЬЯМА';
+    return raw;
+  }
+
+  function normText(value) {
+    return String(value || '').trim().toLowerCase().replace(/ё/g, 'е');
+  }
+
+  function compactText(value) {
+    return normText(value).replace(/[^a-zа-я0-9]+/g, '');
+  }
+
+  function teamMatchesTeamText(teamText, teamData) {
+    const team = normText(teamText);
+    const teamCompact = compactText(teamText);
+    const name = normText(teamData && teamData.name);
+    const abbr = normText(teamData && teamData.abbr);
+    const nameCompact = compactText(teamData && teamData.name);
+    const abbrCompact = compactText(teamData && teamData.abbr);
+
+    if (!team) return false;
+    if (abbr && team === abbr) return true;
+    if (name && team === name) return true;
+    if (abbrCompact && teamCompact === abbrCompact) return true;
+    if (nameCompact && teamCompact === nameCompact) return true;
+    return nameCompact && teamCompact && (nameCompact.includes(teamCompact) || teamCompact.includes(nameCompact));
+  }
+
+  function hintedTeamAbbr(playerName) {
+    const name = compactText(playerName);
+    if (!name) return '';
+    if (name.includes('edgecombe')) return 'PHI';
+    if (name.includes('tatum') || name.includes('тейтум')) return 'BOS';
+    if (name.includes('wemban') || name.includes('вембан')) return 'SAS';
+    return '';
+  }
+
+  function teamByAbbrHint(abbr, home, away) {
+    const hint = normText(abbr);
+    if (!hint) return null;
+    if (normText(home && home.abbr) === hint) return home;
+    if (normText(away && away.abbr) === hint) return away;
+    return null;
+  }
+
+  function resolveTeamLogo(player, result) {
+    const teamLogo = player.team_logo || '';
+    const teamAbbr = player.team_abbr || '';
+    if (teamLogo || teamAbbr) return { logo: teamLogo, abbr: teamAbbr || player.team };
+
+    const side = normText(player.team_side);
+    const team = normText(player.team);
+    const home = (result && result.home) || {};
+    const away = (result && result.away) || {};
+
+    if (side === 'home') return { logo: home.logo, abbr: home.abbr || home.name };
+    if (side === 'away') return { logo: away.logo, abbr: away.abbr || away.name };
+    if (teamMatchesTeamText(player.team, home)) return { logo: home.logo, abbr: home.abbr || home.name };
+    if (teamMatchesTeamText(player.team, away)) return { logo: away.logo, abbr: away.abbr || away.name };
+
+    const hintedTeam = teamByAbbrHint(hintedTeamAbbr(player.name), home, away);
+    if (hintedTeam) return { logo: hintedTeam.logo, abbr: hintedTeam.abbr || hintedTeam.name };
+
+    return { logo: home.logo || away.logo || '', abbr: home.abbr || away.abbr || player.team || teamAbbr || '--' };
+  }
+
+  function fitName() {
+    const el = document.getElementById('player-name');
+    if (!el) return;
+    el.style.fontSize = '56px';
+    let size = 56;
+    while (el.scrollWidth > el.clientWidth && size > 40) {
+      size -= 2;
+      el.style.fontSize = size + 'px';
+    }
+  }
+
   async function update() {
     try {
       const stamp = Date.now();
-      const res = await fetch(new URL('json/player.json?_=' + stamp, window.location.origin + '/').href, { cache: 'no-store' });
+      const [res, resultRes] = await Promise.all([
+        fetch(new URL('json/player.json?_=' + stamp, window.location.origin + '/').href, { cache: 'no-store' }),
+        fetch(new URL('json/result.json?_=' + stamp, window.location.origin + '/').href, { cache: 'no-store' })
+      ]);
       if (!res.ok) { hideCard(); return; }
       const player = await res.json();
+      const result = resultRes.ok ? await resultRes.json() : {};
 
       const visible = !!(player && player.visible && String(player.mode || '').toLowerCase() !== 'hidden');
       const card = document.getElementById('card');
@@ -332,8 +441,9 @@
       if (!visible) { card.classList.remove('card--visible'); return; }
 
       const stats = (player && player.stats) || {};
-      document.getElementById('player-name').textContent   = pv(player.name);
+      document.getElementById('player-name').textContent   = pv(displayPlayerName(player.name));
       document.getElementById('player-number').textContent = player.number ? ('#' + player.number) : '';
+      fitName();
 
       const team = pv(player.team);
       const pos  = player.position ? String(player.position) : '';
@@ -341,12 +451,15 @@
 
       document.getElementById('p-ppg').textContent = pv(stats.PPG);
       document.getElementById('p-rpg').textContent = pv(stats.RPG);
+      document.getElementById('p-fg').textContent = pv(stats.FG);
       document.getElementById('p-apg').textContent = pv(stats.APG);
       document.getElementById('p-stl').textContent = pv(stats.STL);
       document.getElementById('p-blk').textContent = pv(stats.BLK);
 
-      setPhoto(toMediaUrl(player.photo));
-      setTeamLogo(toMediaUrl(player.team_logo), player.team_abbr || player.team);
+      applyPhotoTransform(player);
+      setPhoto(toMediaUrl(preferredPlayerPhoto(player)));
+      const teamMark = resolveTeamLogo(player, result);
+      setTeamLogo(toMediaUrl(teamMark.logo), teamMark.abbr);
 
       card.classList.add('card--visible');
 

@@ -16,6 +16,7 @@ import datetime
 import tempfile
 import difflib
 import hashlib
+import html
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -89,7 +90,8 @@ _TEAM_ABBR: dict[str, str] = {
     'мемфис гриззлис': 'MEM', 'майами хит': 'MIA', 'милуоки бакс': 'MIL',
     'миннесота тимбервулвз': 'MIN', 'нью-орлеан пеликанс': 'NOP',
     'нью-йорк никс': 'NYK', 'оклахома-сити тандер': 'OKC', 'оклахома сити тандер': 'OKC',
-    'орландо мэджик': 'ORL', 'филадельфия 76ers': 'PHI', 'финикс санс': 'PHX',
+    'орландо мэджик': 'ORL', 'филадельфия 76ers': 'PHI',
+    'филадельфия сиксерс': 'PHI', 'финикс санс': 'PHX',
     'портленд трэйл блэйзерс': 'POR', 'сакраменто кингс': 'SAC',
     'сан-антонио спёрс': 'SAS', 'торонто рэпторс': 'TOR',
     'юта джаз': 'UTA', 'вашингтон уизардс': 'WAS',
@@ -142,13 +144,15 @@ def empty_team() -> dict:
         "name": "", "abbr": "", "logo": "",
         "total": "", "q1": "", "q2": "", "q3": "", "q4": "", "ot": "",
         "FG": "", "3P": "", "FT": "",
-        "REB": "", "AST": "", "TOV": "", "PF": ""
+        "REB": "", "AST": "", "TOV": "", "PF": "",
+        "players": []
     }
 
 
 def empty_result() -> dict:
     return {
         "status": "scheduled",
+        "screen": "team_stats",
         "quarter": "",
         "time": "",
         "home": empty_team(),
@@ -311,6 +315,18 @@ NBA_NAME_HINTS = {
     'jarrett allen': '1628386', 'allen': '1628386', 'аллен': '1628386',
     'strus': '1629622', 'струс': '1629622',
     'deuce mcbride': '1630540', 'mcbride': '1630540', 'макбрайд': '1630540',
+    'tyrese maxey': '1630178', 'maxey': '1630178', 'макси': '1630178',
+    'joel embiid': '203954', 'embiid': '203954', 'эмбиид': '203954',
+    'jayson tatum': '1628369', 'tatum': '1628369', 'тейтум': '1628369',
+    'jaylen brown': '1627759', 'brown': '1627759', 'браун': '1627759',
+    'paul george': '202331', 'george': '202331', 'джордж': '202331',
+    'derrick white': '1628401', 'white': '1628401', 'уайт': '1628401',
+    'payton pritchard': '1630202', 'pritchard': '1630202', 'притчард': '1630202',
+    'quentin grimes': '1629656', 'grimes': '1629656', 'граймс': '1629656',
+    'sam hauser': '1630573', 'hauser': '1630573', 'хаузер': '1630573',
+    'andre drummond': '203083', 'drummond': '203083', 'драммонд': '203083',
+    'kelly oubre': '203468', 'oubre': '203468', 'убре': '203468',
+    'edgecombe': '1642845',
 }
 
 
@@ -324,10 +340,35 @@ def _latinize_name(value: str) -> str:
 
 def is_nba_match(url: str, result: dict) -> bool:
     url_has_nba = 'nba' in (url or '').lower()
-    home_abbr = str(result.get('home', {}).get('abbr', '')).upper()
-    away_abbr = str(result.get('away', {}).get('abbr', '')).upper()
+    home = result.get('home', {}) if isinstance(result.get('home'), dict) else {}
+    away = result.get('away', {}) if isinstance(result.get('away'), dict) else {}
+    home_abbr = str(home.get('abbr', '')).upper()
+    away_abbr = str(away.get('abbr', '')).upper()
+    if home_abbr not in NBA_ABBRS:
+        home_abbr = make_abbr(str(home.get('name', ''))).upper()
+    if away_abbr not in NBA_ABBRS:
+        away_abbr = make_abbr(str(away.get('name', ''))).upper()
     teams_are_nba = home_abbr in NBA_ABBRS and away_abbr in NBA_ABBRS
     return teams_are_nba or url_has_nba
+
+
+def _name_from_player_url(player_url: str) -> str:
+    """Convert Flashscore /player/surname-given/id/ URL into a search-friendly name."""
+    raw = str(player_url or '').strip()
+    if not raw:
+        return ''
+    try:
+        path = urllib.parse.urlparse(raw).path or raw
+    except ValueError:
+        path = raw
+    parts = [p for p in path.strip('/').split('/') if p]
+    if len(parts) < 2 or parts[0].lower() != 'player':
+        return ''
+    slug = re.sub(r'[^A-Za-z\-]', ' ', parts[1]).strip('- ')
+    tokens = [t for t in slug.split('-') if t]
+    if len(tokens) >= 2:
+        return ' '.join(tokens[1:] + tokens[:1])
+    return ' '.join(tokens)
 
 
 def _read_cached_nba_players() -> list[dict]:
@@ -350,6 +391,63 @@ def _write_cached_nba_players(players: list[dict]) -> None:
             json.dump(players, f, ensure_ascii=False)
     except OSError:
         pass
+
+
+def _extract_players_from_nba_page(payload: object) -> list[dict]:
+    if isinstance(payload, dict):
+        players = payload.get('players')
+        if isinstance(players, list) and any(isinstance(p, dict) and 'PERSON_ID' in p for p in players):
+            normalized: list[dict] = []
+            for player in players:
+                if not isinstance(player, dict):
+                    continue
+                normalized.append({
+                    'firstName': str(player.get('PLAYER_FIRST_NAME', '')).strip(),
+                    'lastName': str(player.get('PLAYER_LAST_NAME', '')).strip(),
+                    'personId': str(player.get('PERSON_ID', '')).strip(),
+                })
+            return normalized
+        for value in payload.values():
+            found = _extract_players_from_nba_page(value)
+            if found:
+                return found
+    elif isinstance(payload, list):
+        for item in payload:
+            found = _extract_players_from_nba_page(item)
+            if found:
+                return found
+    return []
+
+
+def _fetch_nba_players_page() -> list[dict]:
+    req = urllib.request.Request(
+        'https://www.nba.com/players',
+        headers={
+            'User-Agent': (
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+                'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
+            ),
+            'Accept': 'text/html,application/xhtml+xml',
+        },
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=12) as resp:
+            raw = resp.read().decode('utf-8', errors='ignore')
+    except (urllib.error.URLError, OSError, ValueError):
+        return []
+
+    match = re.search(
+        r'<script[^>]+id=["\']__NEXT_DATA__["\'][^>]*>(.*?)</script>',
+        raw,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+    if not match:
+        return []
+    try:
+        payload = json.loads(html.unescape(match.group(1)))
+    except (json.JSONDecodeError, ValueError):
+        return []
+    return _extract_players_from_nba_page(payload)
 
 
 def _nba_roster() -> list[dict]:
@@ -375,45 +473,47 @@ def _nba_roster() -> list[dict]:
         players = payload.get('league', {}).get('standard', [])
     except Exception:
         try:
-            season_start = datetime.datetime.now(datetime.UTC).year
-            if datetime.datetime.now(datetime.UTC).month < 7:
-                season_start -= 1
-            season = f'{season_start}-{str(season_start + 1)[-2:]}'
-            stats_url = (
-                'https://stats.nba.com/stats/commonallplayers'
-                f'?LeagueID=00&Season={season}&IsOnlyCurrentSeason=1'
-            )
-            stats_req = urllib.request.Request(
-                stats_url,
-                headers={
-                    'Host': 'stats.nba.com',
-                    'Accept': 'application/json, text/plain, */*',
-                    'Origin': 'https://www.nba.com',
-                    'Referer': 'https://www.nba.com/',
-                    'User-Agent': (
-                        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
-                        'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
-                    ),
-                    'x-nba-stats-origin': 'stats',
-                    'x-nba-stats-token': 'true',
-                },
-            )
-            with urllib.request.urlopen(stats_req, timeout=15) as resp:
-                payload = json.loads(resp.read().decode('utf-8', errors='ignore'))
-            result_sets = payload.get('resultSets', [])
-            first_set = result_sets[0] if result_sets else {}
-            headers = first_set.get('headers', [])
-            rows = first_set.get('rowSet', [])
-            idx = {name: i for i, name in enumerate(headers)}
-            players = []
-            for row in rows:
-                full_name = str(row[idx.get('DISPLAY_FIRST_LAST', 2)]).strip()
-                parts = full_name.split()
-                players.append({
-                    'firstName': parts[0] if parts else '',
-                    'lastName': ' '.join(parts[1:]) if len(parts) > 1 else '',
-                    'personId': str(row[idx.get('PERSON_ID', 0)]).strip(),
-                })
+            players = _fetch_nba_players_page()
+            if not players:
+                season_start = datetime.datetime.now(datetime.UTC).year
+                if datetime.datetime.now(datetime.UTC).month < 7:
+                    season_start -= 1
+                season = f'{season_start}-{str(season_start + 1)[-2:]}'
+                stats_url = (
+                    'https://stats.nba.com/stats/commonallplayers'
+                    f'?LeagueID=00&Season={season}&IsOnlyCurrentSeason=1'
+                )
+                stats_req = urllib.request.Request(
+                    stats_url,
+                    headers={
+                        'Host': 'stats.nba.com',
+                        'Accept': 'application/json, text/plain, */*',
+                        'Origin': 'https://www.nba.com',
+                        'Referer': 'https://www.nba.com/',
+                        'User-Agent': (
+                            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+                            'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
+                        ),
+                        'x-nba-stats-origin': 'stats',
+                        'x-nba-stats-token': 'true',
+                    },
+                )
+                with urllib.request.urlopen(stats_req, timeout=15) as resp:
+                    payload = json.loads(resp.read().decode('utf-8', errors='ignore'))
+                result_sets = payload.get('resultSets', [])
+                first_set = result_sets[0] if result_sets else {}
+                headers = first_set.get('headers', [])
+                rows = first_set.get('rowSet', [])
+                idx = {name: i for i, name in enumerate(headers)}
+                players = []
+                for row in rows:
+                    full_name = str(row[idx.get('DISPLAY_FIRST_LAST', 2)]).strip()
+                    parts = full_name.split()
+                    players.append({
+                        'firstName': parts[0] if parts else '',
+                        'lastName': ' '.join(parts[1:]) if len(parts) > 1 else '',
+                        'personId': str(row[idx.get('PERSON_ID', 0)]).strip(),
+                    })
         except Exception as e:
             log.warning(f'NBA roster fetch failed, trying local cache: {e}')
             cached = _read_cached_nba_players()
@@ -489,11 +589,18 @@ def download_nba_headshot(person_id: str) -> str:
     if not person_id:
         return ''
     safe_id = urllib.parse.quote(person_id)
-    remote = f'https://cdn.nba.com/headshots/nba/latest/1040x760/{safe_id}.png'
-    local_name = f'{person_id}.png'
+    local_name = f'{safe_id}.png'
     local_path = os.path.join(PLAYER_CACHE_DIR, local_name)
+    if os.path.exists(local_path):
+        try:
+            if os.path.getsize(local_path) >= 1000:
+                return f'json/players/{local_name}'
+        except OSError:
+            pass
+
+    photo_url = f'https://cdn.nba.com/headshots/nba/latest/1040x760/{safe_id}.png'
     req = urllib.request.Request(
-        remote,
+        photo_url,
         headers={
             'Referer': 'https://www.nba.com/',
             'User-Agent': (
@@ -589,7 +696,7 @@ def _sportsdb_photo_url(player_name: str) -> str:
     return ''
 
 
-def _download_external_photo(photo_url: str, prefix: str = 'ext') -> str:
+def _download_external_photo(photo_url: str, prefix: str = 'ext', referer: str = 'https://www.thesportsdb.com/') -> str:
     if not photo_url:
         return ''
     digest = hashlib.sha1(photo_url.encode('utf-8', errors='ignore')).hexdigest()[:12]
@@ -603,7 +710,7 @@ def _download_external_photo(photo_url: str, prefix: str = 'ext') -> str:
     req = urllib.request.Request(
         photo_url,
         headers={
-            'Referer': 'https://www.thesportsdb.com/',
+            'Referer': referer,
             'User-Agent': (
                 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
                 'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
@@ -621,6 +728,87 @@ def _download_external_photo(photo_url: str, prefix: str = 'ext') -> str:
         return f'json/players/{local_name}'
     except (urllib.error.URLError, OSError, ValueError):
         return ''
+
+
+def _absolute_flashscore_url(player_url: str, match_url: str) -> str:
+    raw = str(player_url or '').strip()
+    if not raw:
+        return ''
+    if raw.startswith('http://') or raw.startswith('https://'):
+        return raw
+    base = match_url or 'https://www.flashscorekz.com/'
+    return urllib.parse.urljoin(base, raw)
+
+
+def _extract_flashscore_player_photo(driver, player_url: str, match_url: str) -> str:
+    url = _absolute_flashscore_url(player_url, match_url)
+    if not url:
+        return ''
+    try:
+        driver.get(url)
+        time.sleep(1.2)
+        photo_url = driver.execute_script(
+            """
+            const imgs = [...document.querySelectorAll('img[src]')];
+            const scored = imgs.map((img) => {
+              const src = (img.currentSrc || img.getAttribute('src') || '').trim();
+              const cls = ((img.className || '') + ' ' + (img.closest('[class]')?.className || '')).toLowerCase();
+              const alt = (img.getAttribute('alt') || '').toLowerCase();
+              let score = 0;
+              if (/participant|player|profile|athlete|image/.test(cls)) score += 4;
+              if (/player|profile|athlete/.test(alt)) score += 3;
+              if (/static\\.flashscore\\.|res\\/image\\/data\\//.test(src)) score += 2;
+              if (/logo|team|flag|jersey|shirt|badge|country/.test(cls + ' ' + alt + ' ' + src)) score -= 5;
+              score += Math.min(3, Math.round(((img.naturalWidth || img.width || 0) + (img.naturalHeight || img.height || 0)) / 180));
+              return { src, score };
+            }).filter((item) => item.src && !/^data:/.test(item.src));
+            scored.sort((a, b) => b.score - a.score);
+            return scored.length ? scored[0].src : '';
+            """
+        )
+        photo_url = str(photo_url or '').strip()
+        if not photo_url:
+            return ''
+        photo_url = urllib.parse.urljoin(url, photo_url)
+        return _download_external_photo(photo_url, prefix='fs', referer=url)
+    except Exception as e:
+        log.debug(f'Flashscore player photo lookup failed ({url}): {e}')
+        return ''
+
+
+def resolve_player_photo(player_name: str, player_url: str = '', prefer_nba: bool = False) -> tuple[str, str, str]:
+    search_names: list[str] = []
+    url_name = _name_from_player_url(player_url)
+    for name in (url_name, player_name):
+        name = str(name or '').strip()
+        if name and name not in search_names:
+            search_names.append(name)
+
+    if prefer_nba:
+        for name in search_names:
+            person_id = find_nba_player_id(name)
+            if not person_id:
+                continue
+            nba_photo = download_nba_headshot(person_id)
+            if nba_photo:
+                return nba_photo, 'auto:nba', 'auto_found'
+
+    for name in search_names:
+        fallback_url = _sportsdb_photo_url(name)
+        fallback_photo = _download_external_photo(fallback_url, prefix='sdb') if fallback_url else ''
+        if fallback_photo:
+            return fallback_photo, 'auto:sportsdb', 'auto_found'
+
+    if not prefer_nba:
+        for name in search_names:
+            person_id = find_nba_player_id(name)
+            if not person_id:
+                continue
+            nba_photo = download_nba_headshot(person_id)
+            if nba_photo:
+                return nba_photo, 'auto:nba', 'auto_found'
+
+    return '', '', 'auto_missing'
 
 
 def el_text(driver, css: str) -> str:
@@ -1064,6 +1252,62 @@ def _player_extra_stats(raw_nums: list) -> dict:
     }
 
 
+def _overlay_screen_value(value: object) -> str:
+    return 'player_stats' if str(value or '').strip() == 'player_stats' else 'team_stats'
+
+
+def _candidate_to_overlay_player(candidate: dict) -> dict:
+    extra = _player_extra_stats(candidate.get('raw_nums', []))
+    return {
+        'name': str(candidate.get('name', '')).strip(),
+        'PTS': _fmt_stat(_to_float(candidate.get('pts', 0))),
+        'REB': _fmt_stat(_to_float(candidate.get('reb', 0))),
+        'AST': _fmt_stat(_to_float(candidate.get('ast', 0))),
+        'STL': _fmt_stat(_to_float(candidate.get('stl', 0))),
+        'BLK': _fmt_stat(_to_float(candidate.get('blk', 0))),
+        'TO': extra.get('TOV', ''),
+        'PF': extra.get('PF', ''),
+        'MIN': extra.get('MIN', ''),
+    }
+
+
+def _attach_player_groups(result: dict, candidates: list[dict]) -> None:
+    if not isinstance(result, dict):
+        return
+    for side in ('home', 'away'):
+        team = result.get(side)
+        if isinstance(team, dict):
+            team['players'] = []
+
+    if not isinstance(candidates, list):
+        return
+
+    known = [
+        item for item in candidates
+        if isinstance(item, dict) and str(item.get('side', '')).strip().lower() in ('home', 'away')
+    ]
+    allowed = [item for item in known if bool(item.get('allowed', False))]
+    source = allowed or known
+    seen: set[str] = set()
+    grouped = {'home': [], 'away': []}
+
+    for item in sorted(source, key=lambda x: _to_float(x.get('score', 0)), reverse=True):
+        side = str(item.get('side', '')).strip().lower()
+        name = str(item.get('name', '')).strip()
+        if side not in grouped or not name:
+            continue
+        key = f'{side}:{name.lower()}'
+        if key in seen:
+            continue
+        seen.add(key)
+        grouped[side].append(_candidate_to_overlay_player(item))
+
+    for side, players in grouped.items():
+        team = result.get(side)
+        if isinstance(team, dict):
+            team['players'] = players
+
+
 def _clean_player_name(value: str) -> str:
     text = str(value or '').replace('\n', ' ').strip()
     text = re.sub(r'\s+', ' ', text)
@@ -1472,6 +1716,8 @@ def parse_player_from_match(
         except Exception as e:
             log.debug(f'Could not write player debug dump: {e}')
 
+    _attach_player_groups(result, debug_candidates)
+
     if not best:
         log.warning('Could not parse player stats from match page')
         return player
@@ -1493,36 +1739,45 @@ def parse_player_from_match(
         **_player_extra_stats(best.get('raw_nums', [])),
     }
 
-    if is_nba_match(match_url, result):
-        try:
-            person_id = find_nba_player_id(player['name'])
-            if person_id:
-                local_photo = download_nba_headshot(person_id)
-                if local_photo:
-                    player['photo'] = local_photo
-                    player['photo_source'] = 'auto:nba'
-                    player['photo_status'] = 'auto_found'
-                else:
-                    fallback_url = _sportsdb_photo_url(player['name'])
-                    fallback_photo = _download_external_photo(fallback_url, prefix='sdb') if fallback_url else ''
-                    if fallback_photo:
-                        player['photo'] = fallback_photo
-                        player['photo_source'] = 'auto:sportsdb'
-                        player['photo_status'] = 'auto_found'
-                    else:
-                        player['photo_status'] = 'auto_missing'
+    try:
+        nba_match = is_nba_match(match_url, result)
+        photo = ''
+        photo_source = ''
+        photo_status = 'auto_missing'
+
+        if nba_match:
+            photo, photo_source, photo_status = resolve_player_photo(
+                player['name'],
+                best.get('player_url', ''),
+                prefer_nba=True,
+            )
+
+        if not photo:
+            row_photo_url = str(best.get('photo_url', '')).strip()
+            row_photo = _download_external_photo(row_photo_url, prefix='fs', referer=match_url) if row_photo_url else ''
+            if row_photo:
+                photo = row_photo
+                photo_source = 'auto:flashscore'
+                photo_status = 'auto_found'
             else:
-                fallback_url = _sportsdb_photo_url(player['name'])
-                fallback_photo = _download_external_photo(fallback_url, prefix='sdb') if fallback_url else ''
-                if fallback_photo:
-                    player['photo'] = fallback_photo
-                    player['photo_source'] = 'auto:sportsdb'
-                    player['photo_status'] = 'auto_found'
+                fs_photo = _extract_flashscore_player_photo(driver, best.get('player_url', ''), match_url)
+                if fs_photo:
+                    photo = fs_photo
+                    photo_source = 'auto:flashscore'
+                    photo_status = 'auto_found'
                 else:
-                    player['photo_status'] = 'auto_missing'
-        except Exception as e:
-            log.warning(f'NBA photo lookup failed: {e}')
-            player['photo_status'] = 'auto_missing'
+                    photo, photo_source, photo_status = resolve_player_photo(
+                        player['name'],
+                        best.get('player_url', ''),
+                        prefer_nba=False,
+                    )
+
+        player['photo'] = photo
+        player['photo_source'] = photo_source
+        player['photo_status'] = photo_status
+    except Exception as e:
+        log.warning(f'Player photo lookup failed: {e}')
+        player['photo_status'] = 'auto_missing'
 
     log.info(
         f"Selected match player: {player['name']!r} side={player['team_side']!r} "
@@ -1733,9 +1988,10 @@ def main():
     strict_match_players_only = _cfg_bool(cfg, 'strict_match_players_only', True)
     dump_player_candidates = _cfg_bool(cfg, 'dump_player_candidates', True)
     auto_switch_match_url = _cfg_bool(cfg, 'auto_switch_match_url', True)
+    overlay_screen = _overlay_screen_value(cfg.get('overlay_screen', 'team_stats'))
     log.info(
         f"URL: {url}  |  frequency: {freq}s  |  live_max_delay: {live_max_delay}s  "
-        f"strict_players={strict_match_players_only}"
+        f"strict_players={strict_match_players_only}  overlay_screen={overlay_screen}"
     )
 
     driver = None
@@ -1754,6 +2010,7 @@ def main():
                 new_strict = _cfg_bool(live_cfg, 'strict_match_players_only', strict_match_players_only)
                 new_dump = _cfg_bool(live_cfg, 'dump_player_candidates', dump_player_candidates)
                 new_auto_switch = _cfg_bool(live_cfg, 'auto_switch_match_url', auto_switch_match_url)
+                new_overlay_screen = _overlay_screen_value(live_cfg.get('overlay_screen', overlay_screen))
 
                 if new_auto_switch and new_url and new_url != url:
                     log.info(f'Match URL changed in config, switching scraper source to: {new_url}')
@@ -1765,6 +2022,7 @@ def main():
                 strict_match_players_only = new_strict
                 dump_player_candidates = new_dump
                 auto_switch_match_url = new_auto_switch
+                overlay_screen = new_overlay_screen
             except Exception as e:
                 log.debug(f'Live config reload skipped: {e}')
 
@@ -1775,6 +2033,13 @@ def main():
                 strict_match_players_only=strict_match_players_only,
                 dump_player_candidates=dump_player_candidates,
             )
+            result_meta = result.get('_meta') if isinstance(result.get('_meta'), dict) else {}
+            result_meta.update({
+                'match_key': url,
+                'source_url': url,
+            })
+            result['screen'] = overlay_screen
+            result['_meta'] = result_meta
 
             existing_player = read_json_dict(PLAYER_PATH)
             existing_mode = str(existing_player.get('mode', '')).strip().lower()

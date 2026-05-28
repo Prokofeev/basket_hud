@@ -1,9 +1,10 @@
 {
   "urls": [
-    "https://www.flashscorekz.com/match/basketball/cleveland-cavaliers-xGk13Tb6/new-york-knicks-WCNO4nbt/?mid=KCGhatsH"
+    "https://www.flashscorekz.com/match/basketball/boston-celtics-KYD9hVEm/philadelphia-76ers-vwRW2QSh/?mid=zordgtzg"
   ],
   "update_frequency": 8,
   "strict_match_players_only": true,
   "dump_player_candidates": true,
-  "auto_switch_match_url": true
+  "auto_switch_match_url": true,
+  "overlay_screen": "team_stats"
 }

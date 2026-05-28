@@ -17,6 +17,18 @@ class ScraperProcessController:
     def current(self) -> psutil.Process | None:
         return self.pid.current() or self.pid.adopt_existing()
 
+    def all_running(self) -> list[psutil.Process]:
+        result: list[psutil.Process] = []
+        expected = self.exe.resolve()
+        for proc in psutil.process_iter(["pid", "exe"]):
+            try:
+                exe = proc.info.get("exe")
+                if exe and Path(exe).resolve() == expected:
+                    result.append(psutil.Process(int(proc.info["pid"])))
+            except (psutil.NoSuchProcess, psutil.AccessDenied, OSError):
+                continue
+        return result
+
     def is_running(self) -> bool:
         return self.current() is not None
 
@@ -31,15 +43,30 @@ class ScraperProcessController:
         return started.pid
 
     def stop(self, timeout_s: float = 5.0) -> None:
-        proc = self.current()
-        if not proc:
+        procs = self.all_running()
+        if not procs:
+            self.pid.clear()
             return
+        seen: set[int] = set()
+        targets: list[psutil.Process] = []
+        for proc in procs:
+            if proc.pid in seen:
+                continue
+            try:
+                children = proc.children(recursive=True)
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                children = []
+            for target in children + [proc]:
+                if target.pid not in seen:
+                    seen.add(target.pid)
+                    targets.append(target)
         try:
-            children = proc.children(recursive=True)
+            current_pid = psutil.Process().pid
         except (psutil.NoSuchProcess, psutil.AccessDenied):
-            children = []
-        targets = children + [proc]
+            current_pid = -1
         for target in targets:
+            if target.pid == current_pid:
+                continue
             try:
                 target.terminate()
             except (psutil.NoSuchProcess, psutil.AccessDenied):
@@ -55,4 +82,3 @@ class ScraperProcessController:
     def restart(self) -> int:
         self.stop()
         return self.start()
-

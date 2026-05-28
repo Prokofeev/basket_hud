@@ -10,6 +10,7 @@ def default_config() -> ConfigState:
         strict_match_players_only=True,
         dump_player_candidates=True,
         auto_switch_match_url=True,
+        overlay_screen="team_stats",
     )
 
 
@@ -42,4 +43,3 @@ def default_preview_state() -> GraphicState:
 
 def default_live_state() -> GraphicState:
     return GraphicState(phase="idle", selected_layer="player_card")
-

@@ -91,6 +91,7 @@
 
   .header,
   .hero,
+  .lower-region,
   .quarters,
   .stats,
   .footer {
@@ -133,9 +134,13 @@
 
   .hero {
     display: grid;
-    grid-template-columns: 430px 600px 430px;
+    grid-template-columns:
+      minmax(450px, 1fr)
+      minmax(610px, 690px)
+      minmax(450px, 1fr);
+    column-gap: 28px;
     align-items: center;
-    padding: 0 230px;
+    padding: 0 126px;
     overflow: hidden;
   }
 
@@ -145,10 +150,11 @@
     height: 100%;
     display: flex;
     align-items: center;
+    overflow: hidden;
   }
 
-  .team-side--home { justify-content: flex-start; }
-  .team-side--away { justify-content: flex-end; }
+  .team-side--home { justify-content: flex-end; }
+  .team-side--away { justify-content: flex-start; }
 
   .logo-wrap {
     position: absolute;
@@ -159,30 +165,40 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    opacity: 0.72;
+    opacity: 0.56;
   }
 
-  .team-side--home .logo-wrap { left: -360px; }
-  .team-side--away .logo-wrap { right: -360px; }
+  .team-side--home .logo-wrap { right: -110px; }
+  .team-side--away .logo-wrap { left: -110px; }
 
   .team-logo {
-    width: 100%;
-    height: 100%;
+    width: min(100%, 680px);
+    height: min(100%, 680px);
     object-fit: contain;
     display: none;
     opacity: 0.12;
-    filter: grayscale(1) sepia(0.22) saturate(0.55) contrast(1.16) blur(1.35px);
+    image-rendering: auto;
+    filter: grayscale(1) sepia(0.22) saturate(0.55) contrast(1.12) blur(0.65px);
     mix-blend-mode: luminosity;
+  }
+
+  .team-logo.logo-low-res {
+    width: min(58%, 440px);
+    height: min(58%, 440px);
+    opacity: 0.16;
+    filter: grayscale(1) sepia(0.18) saturate(0.52) contrast(1.08) blur(0.35px);
   }
 
   .team-texts {
     position: relative;
     z-index: 2;
-    width: 430px;
+    width: 100%;
+    max-width: 510px;
+    min-width: 0;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 12px;
+    gap: 10px;
     text-shadow: 0 3px 18px rgba(0, 0, 0, 0.82);
   }
 
@@ -191,38 +207,59 @@
     text-align: right;
   }
 
+  .team-side--home .team-texts {
+    align-items: flex-end;
+    text-align: left;
+  }
+
+  .team-side--away .team-texts {
+    align-items: flex-start;
+    text-align: right;
+  }
+
   .team-city {
+    width: auto;
     max-width: 100%;
     font-family: var(--font-display);
-    font-size: 46px;
+    font-size: clamp(30px, 2.4vw, 46px);
     font-weight: 800;
-    line-height: 0.85;
-    letter-spacing: 2px;
+    line-height: 0.92;
+    letter-spacing: 1.4px;
     color: rgba(255, 248, 238, 0.84);
     text-transform: uppercase;
-    overflow-wrap: normal;
+    overflow-wrap: anywhere;
     word-break: normal;
+    text-wrap: balance;
+    max-height: 88px;
+    overflow: hidden;
   }
 
   .team-name {
+    width: auto;
     max-width: 100%;
     font-family: var(--font-display);
-    font-size: 96px;
+    font-size: clamp(54px, 5vw, 94px);
     font-weight: 900;
-    line-height: 0.78;
+    line-height: 0.84;
     letter-spacing: 0;
     color: var(--cream);
     text-transform: uppercase;
-    overflow-wrap: normal;
+    overflow-wrap: anywhere;
     word-break: normal;
+    text-wrap: balance;
+    max-height: 168px;
+    overflow: hidden;
   }
 
   .score-col {
     position: relative;
     min-width: 0;
+    width: 100%;
+    height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: visible;
   }
 
   .score-col::before {
@@ -238,24 +275,28 @@
   .score-nums {
     position: relative;
     z-index: 2;
+    width: 100%;
+    min-width: 0;
     display: flex;
     align-items: center;
     justify-content: center;
     font-family: var(--font-score);
-    font-size: 252px;
+    font-size: clamp(188px, 13vw, 244px);
     line-height: 0.86;
-    letter-spacing: -0.01em;
+    letter-spacing: 0;
     color: var(--cream);
     font-variant-numeric: tabular-nums;
     font-feature-settings: "tnum" 1;
     text-shadow:
       0 2px 0 rgba(255, 255, 255, 0.06),
       0 22px 40px rgba(0, 0, 0, 0.78);
+    white-space: nowrap;
   }
 
   .score-sep {
     display: inline-block;
-    margin: 0 20px;
+    flex: 0 0 auto;
+    margin: 0 clamp(13px, 1.1vw, 20px);
     transform: translateY(0.06em);
     color: rgba(255, 107, 0, 0.86);
     font-size: 0.46em;
@@ -277,7 +318,7 @@
     display: grid;
     grid-template-rows: 30% 35% 35%;
     align-items: stretch;
-    padding: 0 296px;
+    padding: 0 260px;
     background:
       linear-gradient(90deg, transparent, rgba(255, 107, 0, 0.045) 50%, transparent),
       linear-gradient(180deg, rgba(0, 0, 0, 0.04) 0%, rgba(0, 0, 0, 0.24) 100%);
@@ -285,16 +326,18 @@
 
   .q-grid {
     display: grid;
-    grid-template-columns: 170px repeat(var(--q-cols, 4), 1fr);
+    grid-template-columns: minmax(150px, 210px) repeat(var(--q-cols, 4), minmax(82px, 1fr));
+    column-gap: 6px;
     align-items: center;
     border-bottom: 1px solid rgba(255, 107, 0, 0.115);
+    min-width: 0;
   }
 
   .q-grid:last-child { border-bottom-color: rgba(255, 107, 0, 0.24); }
 
   .q-th {
     font-family: var(--font-ui);
-    font-size: 14px;
+    font-size: clamp(12px, 0.8vw, 14px);
     font-weight: 800;
     line-height: 1;
     letter-spacing: 5px;
@@ -306,23 +349,28 @@
   .q-th.q-active { color: var(--orange-hot); text-shadow: 0 0 14px rgba(255, 107, 0, 0.45); }
 
   .q-tag {
+    min-width: 0;
     height: 100%;
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    padding-left: 16px;
+    padding-left: 14px;
+    padding-right: 8px;
     font-family: var(--font-display);
-    font-size: 38px;
+    font-size: clamp(25px, 2vw, 38px);
     font-weight: 800;
-    line-height: 1;
-    letter-spacing: 3px;
+    line-height: 0.95;
+    letter-spacing: 1.8px;
     color: rgba(255, 248, 238, 0.82);
     text-transform: uppercase;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    text-wrap: balance;
   }
 
   .q-cell {
     font-family: var(--font-display);
-    font-size: 50px;
+    font-size: clamp(34px, 2.7vw, 50px);
     font-weight: 800;
     line-height: 1;
     text-align: center;
@@ -335,12 +383,41 @@
   .q-cell.q-active { color: var(--orange-hot); text-shadow: 0 0 14px rgba(255, 107, 0, 0.34); }
   .q-cell--away.q-active { color: var(--cream); }
 
+  .lower-region {
+    grid-row: 3 / 5;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .lower-screen {
+    position: absolute;
+    inset: 0;
+    min-height: 0;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(18px);
+    transition: opacity 0.34s ease, transform 0.34s ease, visibility 0s linear 0.34s;
+    pointer-events: none;
+  }
+
+  .lower-screen.is-active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    transition-delay: 0s;
+  }
+
+  .team-stats-view {
+    display: grid;
+    grid-template-rows: 158px 445px;
+  }
+
   .stats {
     position: relative;
     display: grid;
     grid-template-rows: repeat(7, minmax(0, 1fr));
     row-gap: 4px;
-    padding: 24px 326px 16px;
+    padding: 24px 290px 16px;
     min-height: 0;
   }
 
@@ -358,16 +435,18 @@
     position: relative;
     min-height: 0;
     display: grid;
-    grid-template-columns: 170px 1fr 170px;
+    grid-template-columns: minmax(132px, 180px) minmax(420px, 1fr) minmax(132px, 180px);
+    column-gap: 22px;
     align-items: center;
     border-bottom: 1px solid rgba(255, 107, 0, 0.07);
+    overflow: hidden;
   }
 
   .stat-row:last-child { border-bottom: none; }
 
   .sv {
     font-family: var(--font-display);
-    font-size: 56px;
+    font-size: clamp(38px, 2.9vw, 56px);
     font-weight: 800;
     line-height: 0.92;
     color: var(--cream);
@@ -392,13 +471,15 @@
   .sl {
     position: relative;
     z-index: 2;
-    min-width: 420px;
-    padding: 0 18px;
+    width: min(460px, 72%);
+    min-width: 260px;
+    max-width: 100%;
+    padding: 0 20px;
     font-family: var(--font-ui);
-    font-size: 20px;
+    font-size: clamp(15px, 1.05vw, 20px);
     font-weight: 700;
-    line-height: 1;
-    letter-spacing: 5px;
+    line-height: 1.08;
+    letter-spacing: 3.5px;
     color: rgba(255, 248, 238, 0.92);
     text-align: center;
     text-transform: uppercase;
@@ -408,9 +489,9 @@
 
   .compare {
     position: absolute;
-    left: 7%;
-    right: 7%;
-    top: calc(50% + 18px);
+    left: 3%;
+    right: 3%;
+    top: calc(50% + 20px);
     height: 4px;
     display: grid;
     grid-template-columns: var(--home-pct, 50%) 1fr;
@@ -444,6 +525,225 @@
     background: linear-gradient(90deg, rgba(243, 234, 223, 0.22) 0%, rgba(243, 234, 223, 0.08) 72%, transparent 100%);
   }
 
+  .player-stats-view {
+    display: grid;
+    grid-template-rows: 86px minmax(0, 1fr);
+    padding: 16px 190px 22px;
+    background:
+      linear-gradient(90deg, transparent, rgba(255, 107, 0, 0.038) 50%, transparent),
+      linear-gradient(180deg, rgba(0, 0, 0, 0.04) 0%, rgba(0, 0, 0, 0.26) 100%);
+  }
+
+  .player-stats-view::before {
+    content: '';
+    position: absolute;
+    left: 210px;
+    right: 210px;
+    top: 18px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 107, 0, 0.42), transparent);
+  }
+
+  .player-stats-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    font-family: var(--font-ui);
+    font-size: clamp(18px, 1.45vw, 28px);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: 8px;
+    color: rgba(255, 248, 238, 0.92);
+    text-transform: uppercase;
+    text-align: center;
+    text-shadow: 0 0 18px rgba(255, 107, 0, 0.22), 0 8px 22px rgba(0, 0, 0, 0.7);
+  }
+
+  .player-stats-board {
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 92px minmax(0, 1fr);
+    column-gap: 24px;
+    align-items: stretch;
+  }
+
+  .player-team-panel {
+    min-width: 0;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: 54px 36px repeat(6, minmax(0, 1fr));
+    overflow: hidden;
+  }
+
+  .player-team-head {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: minmax(72px, auto) minmax(0, 1fr);
+    column-gap: 16px;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 107, 0, 0.22);
+  }
+
+  .player-team-tag {
+    min-width: 72px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 14px;
+    font-family: var(--font-display);
+    font-size: 30px;
+    font-weight: 900;
+    line-height: 1;
+    color: var(--bg-0);
+    text-transform: uppercase;
+    background: linear-gradient(180deg, var(--orange-hot), var(--orange));
+    box-shadow: 0 0 20px rgba(255, 107, 0, 0.28);
+  }
+
+  .player-team-name {
+    min-width: 0;
+    font-family: var(--font-display);
+    font-size: clamp(27px, 2vw, 38px);
+    font-weight: 800;
+    line-height: 0.95;
+    letter-spacing: 1px;
+    color: var(--cream);
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .player-stat-header,
+  .player-row {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 66px 66px 66px;
+    column-gap: 8px;
+    align-items: center;
+  }
+
+  .player-stat-header {
+    font-family: var(--font-ui);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 2.5px;
+    color: rgba(255, 138, 31, 0.82);
+    text-transform: uppercase;
+    border-bottom: 1px solid rgba(255, 107, 0, 0.11);
+  }
+
+  .player-stat-header div:not(:first-child),
+  .player-stat {
+    text-align: center;
+  }
+
+  .player-row {
+    position: relative;
+    border-bottom: 1px solid rgba(255, 107, 0, 0.075);
+    overflow: hidden;
+  }
+
+  .player-row:last-child { border-bottom: none; }
+
+  .player-row.is-best::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 12%;
+    bottom: 12%;
+    width: 4px;
+    background: var(--orange-hot);
+    box-shadow: 0 0 18px rgba(255, 107, 0, 0.36);
+  }
+
+  .player-id {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr);
+    column-gap: 12px;
+    align-items: center;
+    padding-left: 14px;
+  }
+
+  .player-number {
+    font-family: var(--font-display);
+    font-size: clamp(24px, 1.8vw, 34px);
+    font-weight: 800;
+    line-height: 1;
+    color: rgba(255, 138, 31, 0.82);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+
+  .player-name {
+    min-width: 0;
+    font-family: var(--font-display);
+    font-size: clamp(28px, 2.05vw, 40px);
+    font-weight: 800;
+    line-height: 0.95;
+    color: rgba(255, 248, 238, 0.94);
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-shadow: 0 5px 14px rgba(0, 0, 0, 0.68);
+  }
+
+  .player-stat {
+    font-family: var(--font-display);
+    font-size: clamp(30px, 2.25vw, 44px);
+    font-weight: 800;
+    line-height: 1;
+    color: var(--cream);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
+
+  .player-row.is-best .player-name,
+  .player-row.is-best .player-stat {
+    color: var(--orange-hot);
+  }
+
+  .player-divider {
+    position: relative;
+    min-height: 0;
+  }
+
+  .player-divider::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 10px;
+    bottom: 10px;
+    width: 1px;
+    transform: translateX(-50%);
+    background: linear-gradient(180deg, transparent, rgba(255, 107, 0, 0.46), transparent);
+    box-shadow: 0 0 16px rgba(255, 107, 0, 0.26);
+  }
+
+  .player-empty {
+    grid-row: 3 / span 6;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    font-family: var(--font-ui);
+    font-size: clamp(14px, 1vw, 19px);
+    font-weight: 800;
+    line-height: 1.25;
+    letter-spacing: 3px;
+    color: rgba(255, 248, 238, 0.64);
+    text-align: center;
+    text-transform: uppercase;
+    border: 1px solid rgba(255, 107, 0, 0.14);
+    background: rgba(5, 2, 1, 0.38);
+  }
+
   @keyframes flash-val {
     0% { color: var(--orange-hot); transform: scale(1.08); }
     65% { color: var(--orange-hot); transform: scale(1); }
@@ -457,6 +757,7 @@
   }
 
   .footer {
+    grid-row: 5;
     background: linear-gradient(90deg, transparent 0%, rgba(255, 107, 0, 0.34) 20%, rgba(255, 144, 38, 0.86) 50%, rgba(255, 107, 0, 0.34) 80%, transparent 100%);
     box-shadow: 0 -10px 34px rgba(255, 107, 0, 0.16);
   }
@@ -504,97 +805,289 @@
     <div class="section-line"></div>
   </main>
 
-  <section class="quarters" id="quarters">
-    <div class="q-grid q-head" id="q-head">
-      <div class="q-th"></div>
-      <div class="q-th" id="lbl-q1">Q1</div>
-      <div class="q-th" id="lbl-q2">Q2</div>
-      <div class="q-th" id="lbl-q3">Q3</div>
-      <div class="q-th" id="lbl-q4">Q4</div>
-      <div class="q-th q-ot" id="lbl-ot">OT</div>
-    </div>
-    <div class="q-grid q-data" id="q-home">
-      <div class="q-tag" id="h-tag">--</div>
-      <div class="q-cell" id="h-q1">--</div>
-      <div class="q-cell" id="h-q2">--</div>
-      <div class="q-cell" id="h-q3">--</div>
-      <div class="q-cell" id="h-q4">--</div>
-      <div class="q-cell q-ot" id="h-ot">--</div>
-    </div>
-    <div class="q-grid q-data" id="q-away">
-      <div class="q-tag" id="a-tag">--</div>
-      <div class="q-cell q-cell--away" id="a-q1">--</div>
-      <div class="q-cell q-cell--away" id="a-q2">--</div>
-      <div class="q-cell q-cell--away" id="a-q3">--</div>
-      <div class="q-cell q-cell--away" id="a-q4">--</div>
-      <div class="q-cell q-cell--away q-ot" id="a-ot">--</div>
-    </div>
-  </section>
+  <section class="lower-region" id="lower-region">
+    <div class="lower-screen team-stats-view is-active" id="teamStatsView">
+      <section class="quarters" id="quarters">
+        <div class="q-grid q-head" id="q-head">
+          <div class="q-th"></div>
+          <div class="q-th" id="lbl-q1">Q1</div>
+          <div class="q-th" id="lbl-q2">Q2</div>
+          <div class="q-th" id="lbl-q3">Q3</div>
+          <div class="q-th" id="lbl-q4">Q4</div>
+          <div class="q-th q-ot" id="lbl-ot">OT</div>
+        </div>
+        <div class="q-grid q-data" id="q-home">
+          <div class="q-tag" id="h-tag">--</div>
+          <div class="q-cell" id="h-q1">--</div>
+          <div class="q-cell" id="h-q2">--</div>
+          <div class="q-cell" id="h-q3">--</div>
+          <div class="q-cell" id="h-q4">--</div>
+          <div class="q-cell q-ot" id="h-ot">--</div>
+        </div>
+        <div class="q-grid q-data" id="q-away">
+          <div class="q-tag" id="a-tag">--</div>
+          <div class="q-cell q-cell--away" id="a-q1">--</div>
+          <div class="q-cell q-cell--away" id="a-q2">--</div>
+          <div class="q-cell q-cell--away" id="a-q3">--</div>
+          <div class="q-cell q-cell--away" id="a-q4">--</div>
+          <div class="q-cell q-cell--away q-ot" id="a-ot">--</div>
+        </div>
+      </section>
 
-  <section class="stats">
-    <div class="stat-row" data-key="fg">
-      <div class="sv" id="h-fg">--</div>
-      <div class="stat-mid">
-        <div class="compare" id="bar-fg"><div class="bar-home"></div><div class="bar-away"></div></div>
-        <div class="sl">БРОСКИ С ИГРЫ</div>
-      </div>
-      <div class="sv" id="a-fg">--</div>
+      <section class="stats">
+        <div class="stat-row" data-key="fg">
+          <div class="sv" id="h-fg">--</div>
+          <div class="stat-mid">
+            <div class="compare" id="bar-fg"><div class="bar-home"></div><div class="bar-away"></div></div>
+            <div class="sl">БРОСКИ С ИГРЫ</div>
+          </div>
+          <div class="sv" id="a-fg">--</div>
+        </div>
+        <div class="stat-row" data-key="3p">
+          <div class="sv" id="h-3p">--</div>
+          <div class="stat-mid">
+            <div class="compare" id="bar-3p"><div class="bar-home"></div><div class="bar-away"></div></div>
+            <div class="sl">ТРЁХОЧКОВЫЕ</div>
+          </div>
+          <div class="sv" id="a-3p">--</div>
+        </div>
+        <div class="stat-row" data-key="ft">
+          <div class="sv" id="h-ft">--</div>
+          <div class="stat-mid">
+            <div class="compare" id="bar-ft"><div class="bar-home"></div><div class="bar-away"></div></div>
+            <div class="sl">ШТРАФНЫЕ БРОСКИ</div>
+          </div>
+          <div class="sv" id="a-ft">--</div>
+        </div>
+        <div class="stat-row" data-key="reb">
+          <div class="sv" id="h-reb">--</div>
+          <div class="stat-mid">
+            <div class="compare" id="bar-reb"><div class="bar-home"></div><div class="bar-away"></div></div>
+            <div class="sl">ПОДБОРЫ</div>
+          </div>
+          <div class="sv" id="a-reb">--</div>
+        </div>
+        <div class="stat-row" data-key="ast">
+          <div class="sv" id="h-ast">--</div>
+          <div class="stat-mid">
+            <div class="compare" id="bar-ast"><div class="bar-home"></div><div class="bar-away"></div></div>
+            <div class="sl">ПЕРЕДАЧИ</div>
+          </div>
+          <div class="sv" id="a-ast">--</div>
+        </div>
+        <div class="stat-row" data-key="tov">
+          <div class="sv" id="h-tov">--</div>
+          <div class="stat-mid">
+            <div class="compare" id="bar-tov"><div class="bar-home"></div><div class="bar-away"></div></div>
+            <div class="sl">ПОТЕРИ</div>
+          </div>
+          <div class="sv" id="a-tov">--</div>
+        </div>
+        <div class="stat-row" data-key="pf">
+          <div class="sv" id="h-pf">--</div>
+          <div class="stat-mid">
+            <div class="compare" id="bar-pf"><div class="bar-home"></div><div class="bar-away"></div></div>
+            <div class="sl">ФОЛЫ</div>
+          </div>
+          <div class="sv" id="a-pf">--</div>
+        </div>
+      </section>
     </div>
-    <div class="stat-row" data-key="3p">
-      <div class="sv" id="h-3p">--</div>
-      <div class="stat-mid">
-        <div class="compare" id="bar-3p"><div class="bar-home"></div><div class="bar-away"></div></div>
-        <div class="sl">ТРЁХОЧКОВЫЕ</div>
+
+    <section class="lower-screen player-stats-view" id="playerStatsView" aria-hidden="true">
+      <div class="player-stats-title">ЛИЧНАЯ СТАТИСТИКА</div>
+      <div class="player-stats-board">
+        <div class="player-team-panel" id="player-home"></div>
+        <div class="player-divider"></div>
+        <div class="player-team-panel" id="player-away"></div>
       </div>
-      <div class="sv" id="a-3p">--</div>
-    </div>
-    <div class="stat-row" data-key="ft">
-      <div class="sv" id="h-ft">--</div>
-      <div class="stat-mid">
-        <div class="compare" id="bar-ft"><div class="bar-home"></div><div class="bar-away"></div></div>
-        <div class="sl">ШТРАФНЫЕ БРОСКИ</div>
-      </div>
-      <div class="sv" id="a-ft">--</div>
-    </div>
-    <div class="stat-row" data-key="reb">
-      <div class="sv" id="h-reb">--</div>
-      <div class="stat-mid">
-        <div class="compare" id="bar-reb"><div class="bar-home"></div><div class="bar-away"></div></div>
-        <div class="sl">ПОДБОРЫ</div>
-      </div>
-      <div class="sv" id="a-reb">--</div>
-    </div>
-    <div class="stat-row" data-key="ast">
-      <div class="sv" id="h-ast">--</div>
-      <div class="stat-mid">
-        <div class="compare" id="bar-ast"><div class="bar-home"></div><div class="bar-away"></div></div>
-        <div class="sl">ПЕРЕДАЧИ</div>
-      </div>
-      <div class="sv" id="a-ast">--</div>
-    </div>
-    <div class="stat-row" data-key="tov">
-      <div class="sv" id="h-tov">--</div>
-      <div class="stat-mid">
-        <div class="compare" id="bar-tov"><div class="bar-home"></div><div class="bar-away"></div></div>
-        <div class="sl">ПОТЕРИ</div>
-      </div>
-      <div class="sv" id="a-tov">--</div>
-    </div>
-    <div class="stat-row" data-key="pf">
-      <div class="sv" id="h-pf">--</div>
-      <div class="stat-mid">
-        <div class="compare" id="bar-pf"><div class="bar-home"></div><div class="bar-away"></div></div>
-        <div class="sl">ФОЛЫ</div>
-      </div>
-      <div class="sv" id="a-pf">--</div>
-    </div>
+    </section>
   </section>
 
   <div class="footer"></div>
 </div>
 
 <script>
+  const USE_TEST_DATA = false;
+  const TEST_DATA_INDEX = 0;
   const PREV = {};
+  const FIT_QUEUE = new Set();
+  let CURRENT_SCREEN = 'team_stats';
+
+  const TEST_DATA = [
+    {
+      status: 'over',
+      league: 'NBA',
+      quarter: '',
+      home: { name: 'Philadelphia Sixers', abbr: 'PHI', total: 96, q1: 22, q2: 24, q3: 21, q4: 29, FG: '38/89', '3P': '11/34', FT: '9/13', REB: 41, AST: 22, TOV: 12, PF: 18 },
+      away: { name: 'Boston Celtics', abbr: 'BOS', total: 128, q1: 34, q2: 29, q3: 31, q4: 34, FG: '49/91', '3P': '18/42', FT: '12/15', REB: 47, AST: 31, TOV: 9, PF: 15 }
+    },
+    {
+      screen: 'player_stats',
+      status: 'over',
+      league: 'NBA',
+      quarter: '',
+      home: {
+        name: 'Philadelphia Sixers', abbr: 'PHI', total: 96, q1: 22, q2: 24, q3: 21, q4: 29, FG: '38/89', '3P': '11/34', FT: '9/13', REB: 41, AST: 22, TOV: 12, PF: 18,
+        players: [
+          { number: '21', name: 'Joel Embiid', shortName: 'Embiid', PTS: 28, REB: 11, AST: 4 },
+          { number: '0', name: 'Tyrese Maxey', shortName: 'Maxey', PTS: 22, REB: 2, AST: 6 },
+          { number: '8', name: 'Paul George', shortName: 'George', PTS: 16, REB: 4, AST: 1 },
+          { number: '5', name: 'Quentin Grimes', shortName: 'Grimes', PTS: 12, REB: 2, AST: 6 },
+          { number: '', name: 'Andre Drummond', shortName: 'Drummond', PTS: 2, REB: 1, AST: 1 }
+        ]
+      },
+      away: {
+        name: 'Boston Celtics', abbr: 'BOS', total: 128, q1: 34, q2: 29, q3: 31, q4: 34, FG: '49/91', '3P': '18/42', FT: '12/15', REB: 47, AST: 31, TOV: 9, PF: 15,
+        players: [
+          { number: '0', name: 'Jayson Tatum', shortName: 'Tatum', PTS: 31, REB: 8, AST: 6 },
+          { number: '11', name: 'Payton Pritchard', shortName: 'Pritchard', PTS: 24, REB: 4, AST: 5 },
+          { number: '7', name: 'Jaylen Brown', shortName: 'Brown', PTS: 20, REB: 7, AST: 1 },
+          { number: '9', name: 'Derrick White', shortName: 'White', PTS: 11, REB: 6, AST: 3 },
+          { number: '88', name: 'Neemias Queta', shortName: 'Queta', PTS: 9, REB: 8, AST: 1 }
+        ]
+      }
+    },
+    {
+      screen: 'player_stats',
+      status: 'over',
+      league: 'NBA',
+      home: {
+        name: 'Oklahoma City Thunder', abbr: 'OKC', total: 122, q1: 30, q2: 29, q3: 31, q4: 32,
+        players: [
+          { number: '2', name: 'Shai Gilgeous-Alexander', PTS: 35, REB: 7, AST: 9 },
+          { number: '7', name: 'Chet Holmgren-Jalen Williams Extremely Long Broadcast Surname', PTS: 21, REB: 10, AST: 2 },
+          { number: '5', name: 'Luguentz Dort', PTS: 14, REB: 5, AST: 1 }
+        ]
+      },
+      away: {
+        name: 'Minnesota Timberwolves', abbr: 'MIN', total: 118, q1: 28, q2: 27, q3: 34, q4: 29,
+        players: [
+          { number: '5', name: 'Anthony Edwards', PTS: 33, REB: 6, AST: 5 },
+          { number: '27', name: 'Rudy Gobert', PTS: 12, REB: 16, AST: 1 },
+          { number: '10', name: 'Mike Conley', PTS: 9, REB: 2, AST: 8 }
+        ]
+      }
+    },
+    {
+      screen: 'player_stats',
+      status: 'over',
+      league: 'НБА',
+      home: {
+        name: 'Денвер Наггетс', abbr: 'DEN', total: 109, q1: 27, q2: 26, q3: 25, q4: 31,
+        players: [
+          { number: '15', name: 'Йокич Н.', PTS: 29, REB: 13, AST: 10 },
+          { number: '27', name: 'Мюррей Дж.', PTS: 24, REB: 3, AST: 7 },
+          { number: '', name: 'Гордон А.', PTS: 14, REB: 8, AST: 2 }
+        ]
+      },
+      away: {
+        name: 'Даллас Маверикс', abbr: 'DAL', total: 101, q1: 24, q2: 29, q3: 21, q4: 27,
+        players: [
+          { number: '77', name: 'Дончич Л.', PTS: 34, REB: 9, AST: 8 },
+          { number: '11', name: 'Ирвинг К.', PTS: 23, REB: 4, AST: 6 },
+          { number: '21', name: 'Гэффорд Д.', PTS: 10, REB: 7, AST: 1 }
+        ]
+      }
+    },
+    {
+      screen: 'player_stats',
+      status: 'over',
+      league: 'NBA',
+      home: { name: 'Miami Heat', abbr: 'MIA', total: 87, q1: 19, q2: 24, q3: 21, q4: 23, players: [] },
+      away: {
+        name: 'Orlando Magic', abbr: 'ORL', total: 93, q1: 22, q2: 25, q3: 18, q4: 28,
+        players: [
+          { number: '5', name: 'Paolo Banchero', PTS: 25, REB: null, AST: 5 },
+          { number: '22', name: 'Franz Wagner', pts: 18, reb: 6 },
+          { number: '', name: 'Cole Anthony', PPG: '', RPG: 3, APG: undefined }
+        ]
+      }
+    },
+    {
+      screen: 'player_stats',
+      status: 'over',
+      league: 'NBA',
+      home: {
+        name: 'Los Angeles Lakers', abbr: 'LAL', total: 130, q1: 33, q2: 31, q3: 35, q4: 31,
+        players: [
+          { displayOrder: 2, number: '23', name: 'LeBron James', PTS: 26, REB: 8, AST: 12 },
+          { displayOrder: 1, number: '3', name: 'Anthony Davis', PTS: 31, REB: 14, AST: 3 },
+          { displayOrder: 3, number: '15', name: 'Austin Reaves', PTS: 18, REB: 4, AST: 7 },
+          { displayOrder: 4, number: '1', name: 'D Angelo Russell', PTS: 14, REB: 2, AST: 5 },
+          { displayOrder: 5, number: '28', name: 'Rui Hachimura', PTS: 11, REB: 6, AST: 1 },
+          { displayOrder: 6, number: '12', name: 'Taurean Prince', PTS: 8, REB: 3, AST: 1 },
+          { displayOrder: 7, number: '5', name: 'Cam Reddish', PTS: 5, REB: 2, AST: 0 },
+          { displayOrder: 8, number: '11', name: 'Jaxson Hayes', PTS: 4, REB: 4, AST: 0 }
+        ]
+      },
+      away: {
+        name: 'Phoenix Suns', abbr: 'PHX', total: 127, q1: 29, q2: 33, q3: 32, q4: 33,
+        players: [
+          { number: '1', name: 'Devin Booker', PTS: 38, REB: 5, AST: 9 },
+          { number: '35', name: 'Kevin Durant', PTS: 29, REB: 7, AST: 4 },
+          { number: '3', name: 'Bradley Beal', PTS: 19, REB: 4, AST: 5 },
+          { number: '20', name: 'Jusuf Nurkic', PTS: 12, REB: 12, AST: 3 },
+          { number: '8', name: 'Grayson Allen', PTS: 10, REB: 3, AST: 2 },
+          { number: '0', name: 'Royce O Neale', PTS: 7, REB: 5, AST: 1 },
+          { number: '2', name: 'Josh Okogie', PTS: 4, REB: 2, AST: 1 }
+        ]
+      }
+    },
+    {
+      screen: 'player_stats',
+      status: 'live',
+      league: 'NBA',
+      quarter: 'OT',
+      time: '02:14',
+      home: {
+        name: 'Portland Trail Blazers', abbr: 'POR', total: 117, q1: 28, q2: 29, q3: 25, q4: 28, ot: 7,
+        players: [
+          { number: '1', name: 'Anfernee Simons', PTS: 29, REB: 3, AST: 6 },
+          { number: '2', name: 'Deandre Ayton', PTS: 18, REB: 13, AST: 2 }
+        ]
+      },
+      away: {
+        name: 'Oklahoma City Thunder', abbr: 'OKC', total: 121, q1: 31, q2: 26, q3: 27, q4: 26, ot: 11,
+        players: [
+          { number: '2', name: 'Shai Gilgeous-Alexander', PTS: 41, REB: 6, AST: 8 },
+          { number: '8', name: 'Jalen Williams', PTS: 22, REB: 5, AST: 4 }
+        ]
+      }
+    },
+    {
+      status: 'over',
+      league: 'НБА',
+      home: { name: 'Голден Стэйт Уорриорз', abbr: 'GSW', total: 117, q1: 29, q2: 28, q3: 31, q4: 29, FG: '43/90', '3P': '16/42', FT: '15/18', REB: 44, AST: 31, TOV: 11, PF: 19 },
+      away: { name: 'Лос-Анджелес Клипперс', abbr: 'LAC', total: 121, q1: 30, q2: 34, q3: 26, q4: 31, FG: '45/88', '3P': '14/35', FT: '17/20', REB: 47, AST: 27, TOV: 9, PF: 18 }
+    },
+    {
+      status: 'over',
+      league: 'NBA',
+      home: { name: 'Оклахома-Сити Тандер', abbr: 'OKC', total: 104, q1: 25, q2: 27, q3: 24, q4: 28, FG: '40/87', '3P': '12/33', FT: '12/15', REB: 43, AST: 26, TOV: 10, PF: 20 },
+      away: { name: 'Миннесота Тимбервулвз', abbr: 'MIN', total: 99, q1: 24, q2: 22, q3: 27, q4: 26, FG: '38/86', '3P': '13/36', FT: '10/13', REB: 49, AST: 24, TOV: 14, PF: 21 }
+    },
+    {
+      status: 'over',
+      league: 'WNBA',
+      home: { name: 'Нью-Йорк Либерти', abbr: 'NYL', total: 88, q1: 20, q2: 26, q3: 18, q4: 24, FG: '', '3P': '', FT: '', REB: '', AST: '', TOV: '', PF: '' },
+      away: { name: 'Коннектикут Сан', abbr: 'CON', total: 76, q1: 18, q2: 21, q3: 20, q4: 17, FG: '29/74', '3P': '8/24', FT: '10/12', REB: 36, AST: 18, TOV: 14, PF: 17 }
+    },
+    {
+      status: 'over',
+      league: 'NBA',
+      home: { name: 'Los Angeles Clippers', abbr: '', total: 123, q1: 31, q2: 30, q3: 32, q4: 30, FG: '46/88', '3P': '17/38', FT: '14/16', REB: 39, AST: 33, TOV: 7, PF: 16 },
+      away: { name: 'Philadelphia 76ers Extremely Long Broadcast Name', abbr: '', total: 119, q1: 26, q2: 35, q3: 30, q4: 28, FG: '43/91', '3P': '15/41', FT: '18/20', REB: 43, AST: 25, TOV: 13, PF: 22 }
+    },
+    {
+      status: 'live',
+      league: 'NBA',
+      quarter: 'OT',
+      time: '02:14',
+      home: { name: 'Портленд Трэйл Блэйзерс', abbr: 'POR', total: 117, q1: 28, q2: 29, q3: 25, q4: 28, ot: 7, FG: '42/93', '3P': '14/39', FT: '19/22', REB: 48, AST: 24, TOV: 10, PF: 23 },
+      away: { name: 'Оклахома-Сити Тандер', abbr: 'OKC', total: 121, q1: 31, q2: 26, q3: 27, q4: 26, ot: 11, FG: '45/90', '3P': '12/31', FT: '19/25', REB: 46, AST: 28, TOV: 8, PF: 20 }
+    }
+  ];
 
   function fitStage() {
     const scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
@@ -610,6 +1103,19 @@
       .replace(/Ё/g, 'Е')
       .replace(/\s+/g, ' ')
       .trim();
+  }
+
+  function compactTeamTag(team) {
+    const abbr = normalizeTeamText(team && team.abbr ? team.abbr : '');
+    if (abbr) return abbr;
+    const name = normalizeTeamText(team && team.name ? team.name : '');
+    if (!name) return '--';
+    const words = name.split(' ').filter(Boolean);
+    if (words.length > 1) {
+      const initials = words.map(function(word) { return word.charAt(0); }).join('');
+      if (initials.length >= 2 && initials.length <= 5) return initials;
+    }
+    return name.length > 10 ? name.slice(0, 10) : name;
   }
 
   function inferLeagueLabel(data, homeName, awayName) {
@@ -663,7 +1169,11 @@
       return;
     }
     img.onerror = function() { img.style.display = 'none'; };
-    img.onload = function() { img.style.display = 'block'; };
+    img.onload = function() {
+      const lowRes = img.naturalWidth < 300 || img.naturalHeight < 300;
+      img.classList.toggle('logo-low-res', lowRes);
+      img.style.display = 'block';
+    };
     if (img.src !== url) img.src = url;
   }
 
@@ -680,6 +1190,7 @@
     PREV[id] = next;
     el.textContent = next;
     el.classList.toggle('dim', empty);
+    queueFit(el);
   }
 
   function statNum(value) {
@@ -706,7 +1217,7 @@
     const parts = splitTeamName(team.name, team.abbr);
     setV(prefix + '-city', parts.city || team.abbr || '');
     setV(prefix + '-name', parts.team || team.abbr || '--');
-    setV(prefix + '-tag', parts.team || team.abbr || '--');
+    setV(prefix + '-tag', normalizeTeamText(team.abbr) || parts.team || compactTeamTag(team));
   }
 
   function setQuarterColumns(hasOt) {
@@ -728,11 +1239,266 @@
     });
   }
 
+  function toggleScreen(screenName) {
+    const target = screenName === 'player_stats' ? 'player_stats' : 'team_stats';
+    if (CURRENT_SCREEN === target) return;
+    CURRENT_SCREEN = target;
+
+    const teamView = document.getElementById('teamStatsView');
+    const playerView = document.getElementById('playerStatsView');
+    if (!teamView || !playerView) return;
+
+    const showPlayers = target === 'player_stats';
+    teamView.classList.toggle('is-active', !showPlayers);
+    playerView.classList.toggle('is-active', showPlayers);
+    playerView.setAttribute('aria-hidden', showPlayers ? 'false' : 'true');
+  }
+
+  function playerStat(player, names) {
+    for (let i = 0; i < names.length; i++) {
+      const key = names[i];
+      if (player && Object.prototype.hasOwnProperty.call(player, key)) return player[key];
+    }
+    return undefined;
+  }
+
+  function formatPlayerValue(value) {
+    if (value == null || value === '') return '--';
+    return String(value);
+  }
+
+  function playerStatNumber(player) {
+    const value = playerStat(player, ['PTS', 'pts', 'PPG', 'points']);
+    const num = parseFloat(String(value == null ? '' : value).replace(',', '.'));
+    return Number.isFinite(num) ? num : -1;
+  }
+
+  function normalizePlayerName(player) {
+    const shortName = String(player && (player.shortName || player.short_name || player.surname) || '').trim();
+    if (shortName) return shortName;
+
+    const raw = String(player && (player.name || player.player || player.fullName) || '').replace(/\s+/g, ' ').trim();
+    if (!raw) return '--';
+    const parts = raw.split(' ').filter(Boolean);
+    if (parts.length === 1) return parts[0];
+    if (parts[parts.length - 1].indexOf('.') !== -1) return parts.slice(0, -1).join(' ') || parts[0];
+    return parts[parts.length - 1];
+  }
+
+  function sortedPlayers(players) {
+    const list = Array.isArray(players) ? players.filter(function(item) { return item && typeof item === 'object'; }) : [];
+    return list
+      .slice()
+      .sort(function(a, b) {
+        const ao = parseFloat(a.displayOrder);
+        const bo = parseFloat(b.displayOrder);
+        const ahas = Number.isFinite(ao);
+        const bhas = Number.isFinite(bo);
+        if (ahas || bhas) {
+          if (!ahas) return 1;
+          if (!bhas) return -1;
+          return ao - bo;
+        }
+        return playerStatNumber(b) - playerStatNumber(a);
+      })
+      .slice(0, 6);
+  }
+
+  function appendPlayerHeader(panel, team) {
+    const head = document.createElement('div');
+    head.className = 'player-team-head';
+
+    const tag = document.createElement('div');
+    tag.className = 'player-team-tag';
+    tag.textContent = compactTeamTag(team || {});
+
+    const name = document.createElement('div');
+    name.className = 'player-team-name';
+    name.textContent = normalizeTeamText(team && team.name ? team.name : tag.textContent);
+
+    head.appendChild(tag);
+    head.appendChild(name);
+    panel.appendChild(head);
+    queueFit(name);
+  }
+
+  function appendPlayerColumns(panel) {
+    const header = document.createElement('div');
+    header.className = 'player-stat-header';
+    ['ИГРОК', 'О', 'ПДБ', 'ПАС'].forEach(function(label) {
+      const cell = document.createElement('div');
+      cell.textContent = label;
+      header.appendChild(cell);
+    });
+    panel.appendChild(header);
+  }
+
+  function appendPlayerEmpty(panel) {
+    const empty = document.createElement('div');
+    empty.className = 'player-empty';
+    empty.textContent = 'ДАННЫЕ ПО ИГРОКАМ ОЖИДАЮТСЯ';
+    panel.appendChild(empty);
+    queueFit(empty);
+  }
+
+  function appendPlayerRow(panel, player, index) {
+    const row = document.createElement('div');
+    row.className = 'player-row' + (index === 0 ? ' is-best' : '');
+
+    const id = document.createElement('div');
+    id.className = 'player-id';
+
+    const number = document.createElement('div');
+    number.className = 'player-number';
+    const numberValue = playerStat(player, ['number', 'jersey', 'num']);
+    number.textContent = numberValue == null || numberValue === '' ? '' : String(numberValue);
+
+    const name = document.createElement('div');
+    name.className = 'player-name';
+    name.textContent = normalizePlayerName(player);
+
+    id.appendChild(number);
+    id.appendChild(name);
+    row.appendChild(id);
+
+    [
+      ['PTS', 'pts', 'PPG', 'points'],
+      ['REB', 'reb', 'RPG', 'rebounds'],
+      ['AST', 'ast', 'APG', 'assists']
+    ].forEach(function(keys) {
+      const stat = document.createElement('div');
+      stat.className = 'player-stat';
+      stat.textContent = formatPlayerValue(playerStat(player, keys));
+      row.appendChild(stat);
+      queueFit(stat);
+    });
+
+    panel.appendChild(row);
+    queueFit(name);
+    queueFit(number);
+  }
+
+  function renderPlayerPanel(id, team) {
+    const panel = document.getElementById(id);
+    if (!panel) return;
+    panel.textContent = '';
+    appendPlayerHeader(panel, team || {});
+    appendPlayerColumns(panel);
+
+    const players = sortedPlayers(team && team.players);
+    if (!players.length) {
+      appendPlayerEmpty(panel);
+      return;
+    }
+
+    players.forEach(function(player, index) {
+      appendPlayerRow(panel, player, index);
+    });
+  }
+
+  function renderPlayerStats(data) {
+    renderPlayerPanel('player-home', data && data.home ? data.home : {});
+    renderPlayerPanel('player-away', data && data.away ? data.away : {});
+  }
+
+  function queueFit(el) {
+    if (!el) return;
+    if (
+      el.classList.contains('team-city') ||
+      el.classList.contains('team-name') ||
+      el.classList.contains('score-nums') ||
+      el.classList.contains('q-tag') ||
+      el.classList.contains('q-cell') ||
+      el.classList.contains('sv') ||
+      el.classList.contains('sl') ||
+      el.classList.contains('player-team-name') ||
+      el.classList.contains('player-name') ||
+      el.classList.contains('player-number') ||
+      el.classList.contains('player-stat') ||
+      el.classList.contains('player-empty')
+    ) {
+      FIT_QUEUE.add(el);
+    }
+  }
+
+  function fitTextToBox(el, minSize) {
+    if (!el || !el.isConnected) return;
+    el.style.fontSize = '';
+    const computed = window.getComputedStyle(el);
+    let size = parseFloat(computed.fontSize);
+    const min = minSize || 14;
+    const maxLoops = 80;
+    let loops = 0;
+
+    while (
+      loops < maxLoops &&
+      size > min &&
+      (el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 1)
+    ) {
+      size -= 1;
+      el.style.fontSize = size + 'px';
+      loops += 1;
+    }
+  }
+
+  function fitTeamBlock(side) {
+    if (!side) return;
+    const city = side.querySelector('.team-city');
+    const name = side.querySelector('.team-name');
+    if (!city || !name) return;
+    fitTextToBox(city, 22);
+    fitTextToBox(name, 38);
+
+    const texts = side.querySelector('.team-texts');
+    let guard = 0;
+    while (texts && guard < 32 && texts.scrollHeight > texts.clientHeight) {
+      [city, name].forEach(function(el) {
+        const current = parseFloat(window.getComputedStyle(el).fontSize);
+        if (current > 22) el.style.fontSize = (current - 1) + 'px';
+      });
+      guard += 1;
+    }
+  }
+
+  function fitDynamicText() {
+    document.querySelectorAll('.team-side').forEach(fitTeamBlock);
+    fitTextToBox(document.querySelector('.score-nums'), 150);
+    document.querySelectorAll('.q-tag').forEach(function(el) { fitTextToBox(el, 18); });
+    document.querySelectorAll('.q-cell').forEach(function(el) { fitTextToBox(el, 24); });
+    document.querySelectorAll('.sv').forEach(function(el) { fitTextToBox(el, 28); });
+    document.querySelectorAll('.sl').forEach(function(el) { fitTextToBox(el, 12); });
+    document.querySelectorAll('.player-team-name').forEach(function(el) { fitTextToBox(el, 20); });
+    document.querySelectorAll('.player-name').forEach(function(el) { fitTextToBox(el, 20); });
+    document.querySelectorAll('.player-number').forEach(function(el) { fitTextToBox(el, 18); });
+    document.querySelectorAll('.player-stat').forEach(function(el) { fitTextToBox(el, 22); });
+    document.querySelectorAll('.player-empty').forEach(function(el) { fitTextToBox(el, 12); });
+    FIT_QUEUE.clear();
+  }
+
+  function scheduleFit() {
+    requestAnimationFrame(function() {
+      requestAnimationFrame(fitDynamicText);
+    });
+  }
+
+  function getTestData() {
+    const queryIndex = new URLSearchParams(window.location.search).get('test');
+    const requested = queryIndex == null ? TEST_DATA_INDEX : parseInt(queryIndex, 10);
+    const index = Math.max(0, Math.min(TEST_DATA.length - 1, Number.isFinite(requested) ? requested : TEST_DATA_INDEX));
+    return TEST_DATA[index];
+  }
+
+  async function getOverlayData() {
+    if (USE_TEST_DATA || new URLSearchParams(window.location.search).has('test')) return getTestData();
+    const response = await fetch(new URL('json/result.json?_=' + Date.now(), window.location.origin + '/').href, { cache: 'no-store' });
+    if (!response.ok) return null;
+    return response.json();
+  }
+
   async function update() {
     try {
-      const response = await fetch(new URL('json/result.json?_=' + Date.now(), window.location.origin + '/').href, { cache: 'no-store' });
-      if (!response.ok) return;
-      const data = await response.json();
+      const data = await getOverlayData();
+      if (!data) return;
       const h = data.home || {};
       const a = data.away || {};
       const live = data.status === 'live';
@@ -783,12 +1549,24 @@
         setV(aId, av);
         setBar(item[0], hv, av);
       });
+
+      const screen = data.screen === 'player_stats' ? 'player_stats' : 'team_stats';
+      if (screen === 'player_stats') renderPlayerStats(data);
+      toggleScreen(screen);
+      scheduleFit();
     } catch (error) {
       console.warn(error);
     }
   }
 
-  update();
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(function() {
+      update();
+      scheduleFit();
+    });
+  } else {
+    update();
+  }
   setInterval(update, 10000);
 </script>
 </body>

@@ -28,6 +28,7 @@ class ConfigState(BaseModel):
     strict_match_players_only: bool = True
     dump_player_candidates: bool = True
     auto_switch_match_url: bool = True
+    overlay_screen: str = "team_stats"
     meta: AppMeta = Field(default_factory=lambda: AppMeta(schema_version=1, source="config"), alias="_meta")
 
 
@@ -50,12 +51,14 @@ class TeamState(BaseModel):
     AST: str = ""
     TOV: str = ""
     PF: str = ""
+    players: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class ResultState(BaseModel):
     model_config = ConfigDict(extra="allow", populate_by_name=True)
 
     status: str = "scheduled"
+    screen: str = "team_stats"
     quarter: str = ""
     time: str = ""
     home: TeamState = Field(default_factory=TeamState)
