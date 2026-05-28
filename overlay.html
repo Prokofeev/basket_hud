@@ -578,16 +578,15 @@
     min-width: 0;
     min-height: 0;
     display: grid;
-    grid-template-rows: 44px 28px repeat(5, minmax(44px, 1fr));
+    grid-template-rows: 38px 28px repeat(5, minmax(46px, 1fr));
     overflow: hidden;
   }
 
   .player-team-head {
     min-width: 0;
-    display: grid;
-    grid-template-columns: minmax(72px, auto) minmax(0, 1fr);
-    column-gap: 16px;
+    display: flex;
     align-items: center;
+    justify-content: flex-start;
     border-bottom: 1px solid rgba(255, 107, 0, 0.22);
   }
 
@@ -606,20 +605,6 @@
     text-transform: uppercase;
     background: linear-gradient(180deg, var(--orange-hot), var(--orange));
     box-shadow: 0 0 20px rgba(255, 107, 0, 0.28);
-  }
-
-  .player-team-name {
-    min-width: 0;
-    font-family: var(--font-display);
-    font-size: clamp(27px, 2vw, 38px);
-    font-weight: 800;
-    line-height: 0.95;
-    letter-spacing: 1px;
-    color: var(--cream);
-    text-transform: uppercase;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
 
   .player-stat-header,
@@ -936,6 +921,7 @@
 
 <script>
   const USE_TEST_DATA = false;
+  const DEBUG_PLAYER_STATS = false;
   const TEST_DATA_INDEX = 0;
   const PREV = {};
   const FIT_QUEUE = new Set();
@@ -1281,30 +1267,55 @@
     playerView.setAttribute('aria-hidden', showPlayers ? 'false' : 'true');
   }
 
+  const PLAYER_POINT_KEYS = ['PTS', 'pts', 'points', 'pointsTotal', 'score', 'Очки', 'очки', 'O', 'PPG'];
+  const PLAYER_REBOUND_KEYS = ['REB', 'reb', 'rebounds', 'totalRebounds', 'Подборы', 'подборы', 'ПДБ', 'RPG'];
+  const PLAYER_ASSIST_KEYS = ['AST', 'ast', 'assists', 'Передачи', 'передачи', 'ПАС', 'APG'];
+  const PLAYER_NUMBER_KEYS = ['number', 'jersey', 'jerseyNumber', 'num'];
+  const PLAYER_NAME_KEYS = ['name', 'fullName', 'player', 'playerName', 'title'];
+  const PLAYER_SHORT_NAME_KEYS = ['shortName', 'short_name', 'lastName', 'last_name', 'surname'];
+  const PLAYER_STATS_EXTRA_FILES = [
+    'json/player_stats.json',
+    'json/player-stats.json',
+    'json/players_stats.json',
+    'json/player.json',
+    'json/player.last_good.json',
+    'json/player_candidates.json',
+    'json/player_candidates.last_good.json'
+  ];
+  let LAST_PLAYER_STATS_WARN = '';
+
   function playerStat(player, names) {
     for (let i = 0; i < names.length; i++) {
       const key = names[i];
       if (player && Object.prototype.hasOwnProperty.call(player, key)) return player[key];
+    }
+    const nested = player && player.stats && typeof player.stats === 'object' ? player.stats : null;
+    if (nested) {
+      for (let i = 0; i < names.length; i++) {
+        const key = names[i];
+        if (Object.prototype.hasOwnProperty.call(nested, key)) return nested[key];
+      }
     }
     return undefined;
   }
 
   function formatPlayerValue(value) {
     if (value == null || value === '') return '--';
-    return String(value);
+    const text = String(value).trim();
+    return text ? text : '--';
   }
 
   function playerStatNumber(player) {
-    const value = playerStat(player, ['PTS','pts','Очки','очки','O','Points','PPG','points']);
+    const value = playerStat(player, PLAYER_POINT_KEYS);
     const num = parseFloat(String(value == null ? '' : value).replace(',', '.'));
     return Number.isFinite(num) ? num : -1;
   }
 
   function normalizePlayerName(player) {
-    const shortName = String(player && (player.shortName || player.short_name || player.surname) || '').trim();
+    const shortName = String(playerStat(player, PLAYER_SHORT_NAME_KEYS) || '').trim();
     if (shortName) return shortName;
 
-    const raw = String(player && (player.name || player.player || player.fullName) || '').replace(/\s+/g, ' ').trim();
+    const raw = String(playerStat(player, PLAYER_NAME_KEYS) || '').replace(/\s+/g, ' ').trim();
     if (!raw) return '--';
     const parts = raw.split(' ').filter(Boolean);
     if (parts.length === 1) return parts[0];
@@ -1312,22 +1323,199 @@
     return parts[parts.length - 1];
   }
 
-  
+  function getPathValue(root, path) {
+    let current = root;
+    for (let i = 0; i < path.length; i++) {
+      if (!current || typeof current !== 'object') return undefined;
+      current = current[path[i]];
+    }
+    return current;
+  }
+
+  function playerArrayFromValue(value) {
+    if (Array.isArray(value)) return value;
+    if (value && typeof value === 'object') {
+      if (Array.isArray(value.players)) return value.players;
+      if (Array.isArray(value.roster)) return value.roster;
+      if (Array.isArray(value.playerStats)) return value.playerStats;
+      if (Array.isArray(value.player_stats)) return value.player_stats;
+      if (Array.isArray(value.items)) return value.items;
+      if (Array.isArray(value.rows)) return value.rows;
+      if (Array.isArray(value.candidates)) return value.candidates;
+    }
+    return null;
+  }
+
+  function normalizePlayerSide(value) {
+    const text = String(value == null ? '' : value).trim().toLowerCase();
+    if (['home', 'h', 'team1', 'local', 'left', 'дома', 'хозяева'].includes(text)) return 'home';
+    if (['away', 'a', 'team2', 'visitor', 'visitors', 'right', 'гости'].includes(text)) return 'away';
+    return '';
+  }
+
+  function candidateToPlayer(candidate) {
+    if (!candidate || typeof candidate !== 'object') return candidate;
+    const player = Object.assign({}, candidate);
+    if (player.PTS == null && player.pts != null) player.PTS = player.pts;
+    if (player.REB == null && player.reb != null) player.REB = player.reb;
+    if (player.AST == null && player.ast != null) player.AST = player.ast;
+    if (player.STL == null && player.stl != null) player.STL = player.stl;
+    if (player.BLK == null && player.blk != null) player.BLK = player.blk;
+    if (player.TO == null && player.tov != null) player.TO = player.tov;
+    if (player.PF == null && player.pf != null) player.PF = player.pf;
+    return player;
+  }
+
+  function teamTextTokens(team) {
+    const raw = [team && team.abbr, team && team.name].map(function(value) {
+      return String(value || '').trim().toLowerCase();
+    }).filter(Boolean);
+    return raw;
+  }
+
+  function candidateMatchesTeam(candidate, team) {
+    const tokens = teamTextTokens(team);
+    if (!tokens.length) return false;
+    const fields = ['team', 'teamName', 'team_name', 'teamAbbr', 'abbr', 'club', 'teamTitle'];
+    const haystack = fields.map(function(key) {
+      return String(candidate && candidate[key] || '').trim().toLowerCase();
+    }).filter(Boolean).join(' | ');
+    if (!haystack) return false;
+    return tokens.some(function(token) { return haystack === token || haystack.indexOf(token) !== -1; });
+  }
+
+  function candidateSide(candidate, data, side) {
+    const explicit = normalizePlayerSide(
+      candidate && (candidate.side || candidate.team_side || candidate.homeAway || candidate.home_away || candidate.teamSide)
+    );
+    if (explicit) return explicit;
+    if (candidateMatchesTeam(candidate, data && data.home)) return 'home';
+    if (candidateMatchesTeam(candidate, data && data.away)) return 'away';
+    return '';
+  }
+
+  function singlePlayerForSide(payload, data, side, sourcePath) {
+    if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return null;
+    if (!playerStat(payload, PLAYER_NAME_KEYS)) return null;
+    const explicit = candidateSide(payload, data, side);
+    if (explicit && explicit === side) return { players: [candidateToPlayer(payload)], path: sourcePath + '[single-player:' + side + ']' };
+    return null;
+  }
+
+  function candidatePlayersForSide(payload, data, side, sourcePath) {
+    const candidates = payload && Array.isArray(payload.candidates) ? payload.candidates : null;
+    if (!candidates) return null;
+    const scoped = candidates
+      .filter(function(item) { return item && typeof item === 'object' && candidateSide(item, data, side) === side; })
+      .map(candidateToPlayer);
+    return {
+      players: scoped,
+      path: sourcePath + '.candidates[side=' + side + ']',
+      unscopedCount: candidates.filter(function(item) { return !candidateSide(item, data, side); }).length
+    };
+  }
+
+  function sourceCandidatesForSide(data, side) {
+    const paths = [
+      [side, 'players'],
+      ['players', side],
+      ['players', side, 'players'],
+      ['playerStats', side],
+      ['playerStats', side, 'players'],
+      ['player_stats', side],
+      ['player_stats', side, 'players'],
+      ['personalStats', side],
+      ['personalStats', side, 'players'],
+      ['personal_stats', side],
+      ['personal_stats', side, 'players'],
+      ['boxScore', side, 'players'],
+      ['box_score', side, 'players'],
+      ['boxscore', side, 'players'],
+      [side, 'playerStats'],
+      [side, 'player_stats'],
+      [side, 'personalStats'],
+      [side, 'personal_stats'],
+      [side, 'roster'],
+      ['lineups', side],
+      ['lineups', side, 'players'],
+      ['cards', side === 'home' ? 'homePlayers' : 'awayPlayers'],
+      ['cards', side, 'players']
+    ];
+    const checked = [];
+
+    for (let i = 0; i < paths.length; i++) {
+      const path = paths[i];
+      checked.push(path.join('.'));
+      const list = playerArrayFromValue(getPathValue(data, path));
+      if (list && list.length) return { players: list, path: path.join('.'), checked: checked };
+    }
+
+    const extras = Array.isArray(data && data._playerStatsExtras) ? data._playerStatsExtras : [];
+    for (let i = 0; i < extras.length; i++) {
+      const extra = extras[i];
+      const payload = extra && extra.data;
+      const prefix = extra && extra.path ? extra.path + ':' : 'external:';
+      const direct = sourceCandidatesForSide(Object.assign({}, payload, { _playerStatsExtras: [] }), side);
+      checked.push.apply(checked, direct.checked.map(function(item) { return prefix + item; }));
+      if (direct.players.length) return { players: direct.players, path: prefix + direct.path, checked: checked };
+
+      const singleSource = singlePlayerForSide(payload, data, side, prefix.replace(/:$/, ''));
+      if (singleSource && singleSource.players.length) {
+        checked.push(singleSource.path);
+        return { players: singleSource.players, path: singleSource.path, checked: checked };
+      }
+
+      const candidateSource = candidatePlayersForSide(payload, data, side, prefix.replace(/:$/, ''));
+      if (candidateSource && candidateSource.players.length) {
+        checked.push(candidateSource.path);
+        return { players: candidateSource.players, path: candidateSource.path, checked: checked };
+      }
+      if (candidateSource) checked.push(candidateSource.path + ' (0 matched, ' + candidateSource.unscopedCount + ' without side/team)');
+    }
+
+    return { players: [], path: '', checked: checked };
+  }
+
   function getTeamPlayers(data, side) {
-    const direct = data && data[side] && Array.isArray(data[side].players) ? data[side].players : null;
-    if (direct) return direct;
-    const nested = data && data.players && Array.isArray(data.players[side]) ? data.players[side] : null;
-    if (nested) return nested;
-    const alt = data && data.playerStats && data.playerStats[side] && Array.isArray(data.playerStats[side].players) ? data.playerStats[side].players : null;
-    return alt || [];
+    const result = sourceCandidatesForSide(data || {}, side);
+    return Object.assign({ side: side }, result);
   }
 
-  function enrichTeam(data, side) {
+  function debugPlayerStats(data, homeInfo, awayInfo) {
+    const homeCount = homeInfo.players.length;
+    const awayCount = awayInfo.players.length;
+    if (DEBUG_PLAYER_STATS) {
+      console.log('[player_stats] screen:', data && data.screen ? data.screen : 'team_stats');
+      console.log('[player_stats] home path:', homeInfo.path || '(not found)', 'count:', homeCount, 'first:', homeInfo.players[0] || null);
+      console.log('[player_stats] away path:', awayInfo.path || '(not found)', 'count:', awayCount, 'first:', awayInfo.players[0] || null);
+      if (!homeCount || !awayCount) {
+        console.log('[player_stats] top-level keys:', Object.keys(data || {}));
+        console.log('[player_stats] home keys:', Object.keys((data && data.home) || {}));
+        console.log('[player_stats] away keys:', Object.keys((data && data.away) || {}));
+        console.log('[player_stats] checked paths:', { home: homeInfo.checked, away: awayInfo.checked });
+      }
+    }
+    if (!homeCount || !awayCount) {
+      const signature = JSON.stringify({ h: homeCount, a: awayCount, hk: Object.keys((data && data.home) || {}), ak: Object.keys((data && data.away) || {}) });
+      if (signature !== LAST_PLAYER_STATS_WARN) {
+        LAST_PLAYER_STATS_WARN = signature;
+        console.warn('[player_stats] players not found for ' + (!homeCount && !awayCount ? 'home/away' : !homeCount ? 'home' : 'away') + '. Checked paths:', {
+          home: homeInfo.checked,
+          away: awayInfo.checked,
+          topLevelKeys: Object.keys(data || {}),
+          homeKeys: Object.keys((data && data.home) || {}),
+          awayKeys: Object.keys((data && data.away) || {})
+        });
+      }
+    }
+  }
+
+  function enrichTeam(data, side, info) {
     const src = data && data[side] ? data[side] : {};
-    return Object.assign({}, src, { players: getTeamPlayers(data, side) });
+    return Object.assign({}, src, { players: info.players, playerSourcePath: info.path, side: side });
   }
 
-function sortedPlayers(players) {
+  function sortedPlayers(players) {
     const list = Array.isArray(players) ? players.filter(function(item) { return item && typeof item === 'object'; }) : [];
     return list
       .slice()
@@ -1346,22 +1534,17 @@ function sortedPlayers(players) {
       .slice(0, 5);
   }
 
-  function appendPlayerHeader(panel, team) {
+  function appendPlayerHeader(panel, team, side) {
     const head = document.createElement('div');
     head.className = 'player-team-head';
 
     const tag = document.createElement('div');
     tag.className = 'player-team-tag';
-    tag.textContent = compactTeamTag(team || {});
-
-    const name = document.createElement('div');
-    name.className = 'player-team-name';
-    name.textContent = normalizeTeamText(team && team.name ? team.name : tag.textContent);
+    const abbr = normalizeTeamText(team && team.abbr ? team.abbr : '');
+    tag.textContent = abbr || (side === 'away' ? 'ГОСТИ' : 'ДОМА');
 
     head.appendChild(tag);
-    head.appendChild(name);
     panel.appendChild(head);
-    queueFit(name);
   }
 
   function appendPlayerColumns(panel) {
@@ -1400,8 +1583,8 @@ function sortedPlayers(players) {
 
     const number = document.createElement('div');
     number.className = 'player-number';
-    const numberValue = playerStat(player, ['number', 'jersey', 'num']);
-    number.textContent = numberValue == null || numberValue === '' ? '' : String(numberValue);
+    const numberValue = playerStat(player, PLAYER_NUMBER_KEYS);
+    number.textContent = formatPlayerValue(numberValue) === '--' ? '' : formatPlayerValue(numberValue);
 
     const name = document.createElement('div');
     name.className = 'player-name';
@@ -1410,11 +1593,7 @@ function sortedPlayers(players) {
     row.appendChild(number);
     row.appendChild(name);
 
-    [
-      ['PTS','pts','Очки','очки','O','Points','PPG','points'],
-      ['REB','reb','Подборы','подборы','ПДБ','RPG','rebounds'],
-      ['AST','ast','Передачи','передачи','ПАС','APG','assists']
-    ].forEach(function(keys) {
+    [PLAYER_POINT_KEYS, PLAYER_REBOUND_KEYS, PLAYER_ASSIST_KEYS].forEach(function(keys) {
       const stat = document.createElement('div');
       stat.className = 'player-stat';
       stat.textContent = formatPlayerValue(playerStat(player, keys));
@@ -1427,11 +1606,11 @@ function sortedPlayers(players) {
     queueFit(number);
   }
 
-  function renderPlayerPanel(id, team) {
+  function renderPlayerPanel(id, team, side) {
     const panel = document.getElementById(id);
     if (!panel) return;
     panel.textContent = '';
-    appendPlayerHeader(panel, team || {});
+    appendPlayerHeader(panel, team || {}, side);
     appendPlayerColumns(panel);
 
     const players = sortedPlayers(team && team.players);
@@ -1446,8 +1625,11 @@ function sortedPlayers(players) {
   }
 
   function renderPlayerStats(data) {
-    renderPlayerPanel('player-home', enrichTeam(data, 'home'));
-    renderPlayerPanel('player-away', enrichTeam(data, 'away'));
+    const homeInfo = getTeamPlayers(data, 'home');
+    const awayInfo = getTeamPlayers(data, 'away');
+    debugPlayerStats(data, homeInfo, awayInfo);
+    renderPlayerPanel('player-home', enrichTeam(data, 'home', homeInfo), 'home');
+    renderPlayerPanel('player-away', enrichTeam(data, 'away', awayInfo), 'away');
   }
 
   function queueFit(el) {
@@ -1460,7 +1642,6 @@ function sortedPlayers(players) {
       el.classList.contains('q-cell') ||
       el.classList.contains('sv') ||
       el.classList.contains('sl') ||
-      el.classList.contains('player-team-name') ||
       el.classList.contains('player-name') ||
       el.classList.contains('player-number') ||
       el.classList.contains('player-stat') ||
@@ -1516,7 +1697,6 @@ function sortedPlayers(players) {
     document.querySelectorAll('.q-cell').forEach(function(el) { fitTextToBox(el, 24); });
     document.querySelectorAll('.sv').forEach(function(el) { fitTextToBox(el, 28); });
     document.querySelectorAll('.sl').forEach(function(el) { fitTextToBox(el, 12); });
-    document.querySelectorAll('.player-team-name').forEach(function(el) { fitTextToBox(el, 20); });
     document.querySelectorAll('.player-name').forEach(function(el) { fitTextToBox(el, 20); });
     document.querySelectorAll('.player-number').forEach(function(el) { fitTextToBox(el, 18); });
     document.querySelectorAll('.player-stat').forEach(function(el) { fitTextToBox(el, 22); });
@@ -1537,11 +1717,37 @@ function sortedPlayers(players) {
     return TEST_DATA[index];
   }
 
+  async function fetchJsonFile(path, warnOnError) {
+    try {
+      const response = await fetch(new URL(path + '?_=' + Date.now(), window.location.origin + '/').href, { cache: 'no-store' });
+      if (!response.ok) return null;
+      return response.json();
+    } catch (error) {
+      if (warnOnError || DEBUG_PLAYER_STATS) console.warn('[player_stats] cannot load ' + path, error);
+      return null;
+    }
+  }
+
+  async function attachExternalPlayerStats(data) {
+    if (!data || data.screen !== 'player_stats') return data;
+    const extras = [];
+    for (let i = 0; i < PLAYER_STATS_EXTRA_FILES.length; i++) {
+      const path = PLAYER_STATS_EXTRA_FILES[i];
+      const payload = await fetchJsonFile(path, false);
+      if (payload) extras.push({ path: path, data: payload });
+    }
+    if (extras.length) data._playerStatsExtras = extras;
+    if (DEBUG_PLAYER_STATS) {
+      console.log('[player_stats] external files loaded:', extras.map(function(item) { return item.path; }));
+    }
+    return data;
+  }
+
   async function getOverlayData() {
     if (USE_TEST_DATA || new URLSearchParams(window.location.search).has('test')) return getTestData();
-    const response = await fetch(new URL('json/result.json?_=' + Date.now(), window.location.origin + '/').href, { cache: 'no-store' });
-    if (!response.ok) return null;
-    return response.json();
+    const data = await fetchJsonFile('json/result.json', true);
+    if (!data) return null;
+    return attachExternalPlayerStats(data);
   }
 
   async function update() {
