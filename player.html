@@ -42,7 +42,7 @@
   .card-bg {
     position: absolute;
     left: 0; right: 0; bottom: 0;
-    height: 220px;
+    height: 205px;
     background: #ff7414;
     box-shadow: none;
   }
@@ -53,10 +53,10 @@
   .photo-col {
     position: absolute;
     z-index: 6;
-    left: 360px;
-    bottom: -2px;
-    width: 380px;
-    height: 405px;
+    left: 345px;
+    bottom: 0;
+    width: 350px;
+    height: 395px;
     display: flex;
     align-items: flex-end;
     justify-content: center;
@@ -64,8 +64,8 @@
   }
 
   .photo-wrap {
-    width: 380px;
-    height: 405px;
+    width: 350px;
+    height: 395px;
     border-radius: 0;
     overflow: visible;
     position: relative;
@@ -77,7 +77,7 @@
     bottom: 0;
     transform-origin: bottom center;
     width: auto;
-    height: 405px;
+    height: 395px;
     max-width: none;
     object-fit: contain;
     object-position: bottom center;
@@ -97,10 +97,10 @@
   .photo-disc {
     position: absolute;
     z-index: 2;
-    left: 240px;
-    bottom: -355px;
-    width: 610px;
-    height: 610px;
+    left: 235px;
+    bottom: -300px;
+    width: 520px;
+    height: 520px;
     border-radius: 50%;
     background: #000000;
     box-shadow: none;
@@ -112,8 +112,8 @@
     position: absolute;
     z-index: 7;
     left: 940px;
-    right: 55px;
-    bottom: 42px;
+    right: 70px;
+    bottom: 36px;
     display: flex; flex-direction: column;
     gap: 30px;
   }
@@ -124,7 +124,7 @@
 
   .player-name {
     font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
-    font-size: 60px; line-height: 0.9;
+    font-size: 58px; line-height: 0.9;
     font-weight: 900;
     letter-spacing: 0.4px; color: #ffffff;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -138,17 +138,17 @@
 
   .stats-row {
     display: grid;
-    grid-template-columns: repeat(3, 145px);
-    gap: 105px;
+    grid-template-columns: repeat(3, 138px);
+    gap: 95px;
     align-items: end;
-    margin-left: 115px;
+    margin-left: 95px;
     width: max-content;
   }
 
   .stat-item {
     display: flex; flex-direction: column; align-items: center;
     gap: 6px;
-    min-width: 145px;
+    min-width: 138px;
     padding: 0;
     border-right: none;
     position: relative;
@@ -158,7 +158,7 @@
 
   .stat-val {
     font-family: 'Inter', system-ui, sans-serif;
-    font-size: 50px; line-height: 0.9;
+    font-size: 48px; line-height: 0.9;
     font-weight: 900;
     color: #000000;
     font-variant-numeric: tabular-nums;
@@ -166,7 +166,7 @@
     white-space: nowrap;
   }
   .stat-lbl {
-    font-size: 20px; line-height: 1;
+    font-size: 19px; line-height: 1;
     font-weight: 900;
     color: #ffffff;
     letter-spacing: 0;
@@ -177,8 +177,8 @@
   .team-col {
     position: absolute;
     z-index: 8;
-    left: 170px;
-    bottom: 95px;
+    left: 165px;
+    bottom: 86px;
     width: 165px;
     height: 165px;
     display: flex; flex-direction: column;
@@ -195,7 +195,7 @@
   }
 
   .team-logo {
-    width: 115px; height: 115px;
+    width: 114px; height: 114px;
     object-fit: contain;
     filter: none;
     display: none;
@@ -416,8 +416,8 @@
   function fitName() {
     const el = document.getElementById('player-name');
     if (!el) return;
-    el.style.fontSize = '60px';
-    let size = 60;
+    el.style.fontSize = '58px';
+    let size = 58;
     while (el.scrollWidth > el.clientWidth && size > 42) {
       size -= 2;
       el.style.fontSize = size + 'px';
