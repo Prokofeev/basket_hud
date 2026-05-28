@@ -6,5 +6,5 @@
   "strict_match_players_only": true,
   "dump_player_candidates": true,
   "auto_switch_match_url": true,
-  "overlay_screen": "team_stats"
+  "overlay_screen": "player_stats"
 }
